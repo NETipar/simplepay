@@ -2,6 +2,11 @@
 
 All notable changes to `netipar/simplepay` will be documented in this file.
 
+## v1.0.2 - 2026-03-02
+
+### Added
+- Laravel Boost development skill for AI-assisted SimplePay integration
+
 ## v1.0.1 - 2026-03-02
 
 ### Added
