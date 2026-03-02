@@ -26,6 +26,10 @@ class SimplePayServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../config/simplepay.php' => config_path('simplepay.php'),
             ], 'simplepay-config');
+
+            $this->publishes([
+                __DIR__.'/../resources/assets' => public_path('vendor/simplepay'),
+            ], 'simplepay-assets');
         }
 
         $this->loadRoutesFrom(__DIR__.'/../routes/simplepay.php');

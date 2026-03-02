@@ -411,6 +411,30 @@ SIMPLEPAY_USD_MERCHANT=your_usd_merchant_id
 SIMPLEPAY_USD_SECRET_KEY=your_usd_secret_key
 ```
 
+## Logos and Assets
+
+The package includes the official SimplePay merchant logo pack. Publish the assets:
+
+```bash
+php artisan vendor:publish --tag=simplepay-assets
+```
+
+This copies logos and pre-composed variations to `public/vendor/simplepay/`.
+
+Usage in Blade, Vue.js, or React:
+
+```blade
+{{-- Blade --}}
+<img src="{{ asset('vendor/simplepay/logos/simplepay_200x50.png') }}" alt="SimplePay">
+```
+
+```vue
+<!-- Vue.js / React (Inertia.js) -->
+<img src="/vendor/simplepay/logos/simplepay_200x50.png" alt="SimplePay" />
+```
+
+Available logos: SimplePay (multiple sizes/orientations + white variants), Visa, Mastercard, Maestro, Amex, Apple Pay, Google Pay, Qvik, OTP SZÉP. Pre-composed card type combinations are also included. See [examples](examples/en/logos-and-assets.md) for Blade, Vue.js, and React checkout page examples.
+
 ## Logging
 
 Set `SIMPLEPAY_LOG_CHANNEL` to any Laravel log channel name. Example dedicated channel in `config/logging.php`:
