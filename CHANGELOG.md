@@ -2,6 +2,18 @@
 
 All notable changes to `netipar/simplepay` will be documented in this file.
 
+## v1.2.0 - 2026-04-28
+
+### Changed
+- `IpnMessage::$currency` and `IpnMessage::$total` are now nullable to support SimplePay v2 IPN payloads which omit these fields.
+- `SimplePayWebhookController` and `PaymentService::handleIpn()` now resolve the response signature secret key via the `merchant` field when `currency` is not present in the IPN body.
+
+### Added
+- Test coverage for SimplePay v2 IPN payloads without `currency` and `total` fields.
+
+### Notes
+- Consumers reading `$ipn->currency` or `$ipn->total` should now handle `null` values.
+
 ## v1.1.0 - 2026-04-28
 
 ### Changed
