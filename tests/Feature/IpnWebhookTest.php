@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Event;
+use Illuminate\Testing\TestResponse;
 use Netipar\SimplePay\Events\IpnReceived;
 use Netipar\SimplePay\Events\PaymentAuthorized;
 use Netipar\SimplePay\Events\PaymentCancelled;
@@ -23,7 +24,7 @@ function buildIpnPayload(string $status = 'FINISHED', string $currency = 'HUF'):
     ];
 }
 
-function postIpn(array $payload, string $secretKey = 'TEST_HUF_SECRET_KEY'): \Illuminate\Testing\TestResponse
+function postIpn(array $payload, string $secretKey = 'TEST_HUF_SECRET_KEY'): TestResponse
 {
     $json = json_encode($payload);
     $signature = Signature::generate($secretKey, $json);

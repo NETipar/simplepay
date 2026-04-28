@@ -1,5 +1,6 @@
 <?php
 
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Support\Facades\Http;
 use Netipar\SimplePay\Dto\FinishRequest;
 use Netipar\SimplePay\Dto\PaymentRequest;
@@ -10,7 +11,7 @@ use Netipar\SimplePay\Exceptions\SimplePayApiException;
 use Netipar\SimplePay\Services\PaymentService;
 use Netipar\SimplePay\Support\Signature;
 
-function fakeSimplePayResponse(array $data, string $secretKey): \GuzzleHttp\Promise\PromiseInterface
+function fakeSimplePayResponse(array $data, string $secretKey): PromiseInterface
 {
     $json = json_encode($data);
     $signature = Signature::generate($secretKey, $json);
