@@ -2,6 +2,14 @@
 
 All notable changes to `netipar/simplepay` will be documented in this file.
 
+## v1.1.0 - 2026-04-28
+
+### Changed
+- IPN signature middleware no longer requires the `currency` field in the request body. When `currency` is missing, the secret key is resolved via the `merchant` field instead.
+
+### Added
+- `MerchantResolver::getSecretKeyByMerchant(string $merchant): string` for resolving the secret key by merchant ID.
+
 ## v1.0.2 - 2026-03-02
 
 ### Added
