@@ -31,4 +31,17 @@ class MerchantResolver
     {
         return $this->resolve($currency)['secret_key'];
     }
+
+    public function getSecretKeyByMerchant(string $merchant): string
+    {
+        $merchants = config('simplepay.merchants');
+
+        foreach ($merchants as $config) {
+            if (isset($config['merchant'], $config['secret_key']) && $config['merchant'] === $merchant) {
+                return $config['secret_key'];
+            }
+        }
+
+        throw new InvalidArgumentException("SimplePay merchant not configured: {$merchant}");
+    }
 }

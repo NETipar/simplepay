@@ -26,17 +26,33 @@ class VerifySimplePaySignature
         $body = $request->getContent();
         $data = json_decode($body, true);
 
-        if (! is_array($data) || ! isset($data['currency'])) {
+        if (! is_array($data)) {
             abort(401, 'Invalid SimplePay request body');
         }
 
-        $currency = Currency::from($data['currency']);
-        $secretKey = $this->merchantResolver->getSecretKey($currency);
+        $secretKey = $this->resolveSecretKey($data);
+
+        if (! $secretKey) {
+            abort(401, 'Cannot resolve SimplePay merchant for request');
+        }
 
         if (! Signature::verify($secretKey, $body, $signature)) {
             abort(401, 'Invalid SimplePay signature');
         }
 
         return $next($request);
+    }
+
+    private function resolveSecretKey(array $data): ?string
+    {
+        if (isset($data['currency'])) {
+            return $this->merchantResolver->getSecretKey(Currency::from($data['currency']));
+        }
+
+        if (isset($data['merchant'])) {
+            return $this->merchantResolver->getSecretKeyByMerchant($data['merchant']);
+        }
+
+        return null;
     }
 }
