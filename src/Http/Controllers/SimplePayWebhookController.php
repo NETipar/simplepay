@@ -30,8 +30,9 @@ class SimplePayWebhookController
 
         $this->dispatchStatusEvent($ipn);
 
-        $currency = Currency::from($data['currency']);
-        $secretKey = $merchantResolver->getSecretKey($currency);
+        $secretKey = isset($data['currency'])
+            ? $merchantResolver->getSecretKey(Currency::from($data['currency']))
+            : $merchantResolver->getSecretKeyByMerchant($data['merchant']);
 
         $responseData = $data;
         $responseData['receiveDate'] = date('c');

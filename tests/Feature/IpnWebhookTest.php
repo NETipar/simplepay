@@ -122,6 +122,34 @@ it('rejects request with invalid signature', function () {
     $response->assertStatus(401);
 });
 
+it('accepts an IPN without currency and total, resolving secret key by merchant', function () {
+    Event::fake();
+
+    $payload = [
+        'salt' => 'abc123',
+        'orderRef' => 'ORD-002',
+        'method' => 'CARD',
+        'merchant' => 'TEST_HUF_MERCHANT',
+        'finishDate' => '2026-02-10T12:00:00+01:00',
+        'paymentDate' => '2026-02-10T12:00:00+01:00',
+        'transactionId' => 67890,
+        'status' => 'FINISHED',
+    ];
+
+    $response = postIpn($payload);
+
+    $response->assertOk();
+    $response->assertHeader('Signature');
+
+    Event::assertDispatched(IpnReceived::class, function ($event) {
+        return $event->ipn->orderRef === 'ORD-002'
+            && $event->ipn->transactionId === 67890
+            && $event->ipn->currency === null
+            && $event->ipn->total === null
+            && $event->ipn->merchant === 'TEST_HUF_MERCHANT';
+    });
+});
+
 it('returns response with receiveDate and signature header', function () {
     Event::fake();
 

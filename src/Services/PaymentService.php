@@ -102,8 +102,11 @@ readonly class PaymentService
             throw new RuntimeException('Invalid JSON in IPN body');
         }
 
-        $currency = Currency::from($data['currency']);
-        $secretKey = $this->merchantResolver->getSecretKey($currency);
+        $secretKey = match (true) {
+            isset($data['currency']) => $this->merchantResolver->getSecretKey(Currency::from($data['currency'])),
+            isset($data['merchant']) => $this->merchantResolver->getSecretKeyByMerchant($data['merchant']),
+            default => throw new RuntimeException('IPN body must contain currency or merchant'),
+        };
 
         if (! Signature::verify($secretKey, $body, $signature)) {
             throw new RuntimeException('Invalid IPN signature');
