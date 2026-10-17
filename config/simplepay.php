@@ -107,6 +107,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Google Pay
+    |--------------------------------------------------------------------------
+    |
+    | Merchant-side Google Pay acceptance through SimplePay. The merchant ID
+    | and name come from the Google Pay & Wallet Console; the checkout page
+    | needs them to render the Google Pay button.
+    |
+    */
+
+    'google_pay' => [
+        'merchant_id' => env('SIMPLEPAY_GOOGLE_PAY_MERCHANT_ID'),
+        'merchant_name' => env('SIMPLEPAY_GOOGLE_PAY_MERCHANT_NAME'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Auto Challenge
     |--------------------------------------------------------------------------
     |

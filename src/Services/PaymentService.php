@@ -11,6 +11,8 @@ use Netipar\SimplePay\Dto\BackResponse;
 use Netipar\SimplePay\Dto\EamStartRequest;
 use Netipar\SimplePay\Dto\FinishRequest;
 use Netipar\SimplePay\Dto\FinishResponse;
+use Netipar\SimplePay\Dto\GooglePayDoRequest;
+use Netipar\SimplePay\Dto\GooglePayResponse;
 use Netipar\SimplePay\Dto\IpnMessage;
 use Netipar\SimplePay\Dto\PaymentRequest;
 use Netipar\SimplePay\Dto\PaymentResponse;
@@ -18,6 +20,8 @@ use Netipar\SimplePay\Dto\QueryResponse;
 use Netipar\SimplePay\Dto\RefundRequest;
 use Netipar\SimplePay\Dto\RefundResponse;
 use Netipar\SimplePay\Enums\Currency;
+use Netipar\SimplePay\Enums\ErrorCode;
+use Netipar\SimplePay\Exceptions\SimplePayApiException;
 use Netipar\SimplePay\Support\Client;
 use Netipar\SimplePay\Support\MerchantResolver;
 use Netipar\SimplePay\Support\Signature;
@@ -95,6 +99,55 @@ readonly class PaymentService
         $payload['merchant'] = $merchant;
 
         return $this->client->post('/v2/doapplepay', $payload, $secretKey);
+    }
+
+    /**
+     * Charge a Google Pay token on the merchant's own checkout page.
+     *
+     * A 3DS challenge (error code 3004) is a normal outcome here: the response
+     * carries the redirectUrl where the customer has to complete it.
+     *
+     * @throws RandomException
+     * @throws ConnectionException
+     */
+    public function doGooglePay(GooglePayDoRequest $request): GooglePayResponse
+    {
+        $merchant = $this->merchantResolver->getMerchant($request->currency);
+        $secretKey = $this->merchantResolver->getSecretKey($request->currency);
+
+        $payload = $request->toArray();
+        $payload['merchant'] = $merchant;
+
+        try {
+            $response = $this->client->post('/v2/dogooglepay', $payload, $secretKey);
+        } catch (SimplePayApiException $exception) {
+            $response = $exception->getResponseData();
+
+            if (! $exception->hasErrorCode(ErrorCode::ThreeDsChallengeRedirect->value) || ! is_string($response['redirectUrl'] ?? null)) {
+                throw $exception;
+            }
+        }
+
+        return GooglePayResponse::fromArray($response);
+    }
+
+    /**
+     * The values the Google Pay button needs on the checkout page.
+     *
+     * @return array{gpayMerchantId: mixed, gpayMerchantName: mixed, gpayEnvironment: string, gateway: string, gatewayMerchantId: string, paymentType: string, total: string, currency: string}
+     */
+    public function googlePayConfig(Currency $currency, float $total): array
+    {
+        return [
+            'gpayMerchantId' => config('simplepay.google_pay.merchant_id'),
+            'gpayMerchantName' => config('simplepay.google_pay.merchant_name'),
+            'gpayEnvironment' => $this->client->isSandbox() ? 'TEST' : 'PRODUCTION',
+            'gateway' => 'simplepay',
+            'gatewayMerchantId' => $this->merchantResolver->getMerchant($currency),
+            'paymentType' => 'CARD',
+            'total' => rtrim(rtrim(number_format($total, 2, '.', ''), '0'), '.'),
+            'currency' => $currency->value,
+        ];
     }
 
     public function handleBack(string $r, string $s): BackResponse

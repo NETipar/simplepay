@@ -18,6 +18,7 @@ class Client
      * @return array<string, mixed>
      *
      * @throws ConnectionException
+     * @throws SimplePayApiException
      */
     public function post(string $endpoint, array $data, string $merchantKey): array
     {
@@ -45,6 +46,7 @@ class Client
      * @return array<string, mixed>
      *
      * @throws ConnectionException
+     * @throws SimplePayApiException
      */
     public function postSecurePay(string $endpoint, array $data, string $merchantKey): array
     {
