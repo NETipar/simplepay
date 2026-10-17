@@ -254,6 +254,9 @@ $result = SimplePay::cardStorage()->do($request);
 
 ```php
 use Netipar\SimplePay\Dto\RecurringRequest;
+use Netipar\SimplePay\Enums\TransactionType;
+
+// The token comes from the card registration start: $response->tokens (active after the successful payment)
 
 $request = new RecurringRequest(
     currency: Currency::HUF,
@@ -478,7 +481,7 @@ All DTOs use readonly properties. Request DTOs include a `toArray()` method that
 | DTO | Purpose |
 |---|---|
 | `PaymentRequest` | Start a payment with items, addresses, methods |
-| `PaymentResponse` | Transaction ID, payment URL, timeout (null for RTP starts) |
+| `PaymentResponse` | Transaction ID, payment URL, timeout (null for RTP starts), recurring `tokens` of a card registration |
 | `RedirectUrls` | Per-event redirect URLs (`urls`) for payment and RTP starts |
 | `GooglePayDoRequest` / `GooglePayResponse` | Merchant-side Google Pay charge; `redirectUrl` when a 3DS challenge is required |
 | `FinishRequest` / `FinishResponse` | Two-step capture |

@@ -4,7 +4,7 @@ A `SimplePay::rtp()` metódusain keresztül kezelheted a Request to Pay (azonnal
 
 ## RTP indítás
 
-Egyedi fizetési kérés indítása:
+Egyedi fizetési kérés indítása. A kérés a `deadline` időpontban (ISO 8601) jár le; ha nincs megadva, az indítás után 2 óra 5 perccel, ahogy a hivatalos SDK mintája, vagy `timeout` megadása esetén annyi másodperccel később.
 
 ```php
 use Netipar\SimplePay\Facades\SimplePay;

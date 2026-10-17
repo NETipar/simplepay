@@ -4,7 +4,7 @@ Request to Pay (RTP) is a payment initiation method where the merchant sends a p
 
 ## Start an RTP Payment
 
-Initiate a single Request to Pay transaction.
+Initiate a single Request to Pay transaction. The request expires at `deadline` (ISO 8601); without it, 2 hours 5 minutes after the start, as in the official SDK sample, or `timeout` seconds later if you pass `timeout`.
 
 ```php
 use Netipar\SimplePay\Facades\SimplePay;

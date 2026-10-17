@@ -252,6 +252,8 @@ SimplePay::cardStorage()->cardCancel(Currency::HUF, $cardId);
 
 ### Recurring Payments
 
+The start of a card registration (`recurring` in `PaymentRequest`) returns the recurring tokens in `$response->tokens`; they become active when the IPN reports the successful payment.
+
 ```php
 use Netipar\SimplePay\Dto\RecurringRequest;
 use Netipar\SimplePay\Enums\TransactionType;
@@ -274,7 +276,8 @@ $result = SimplePay::cardStorage()->doRecurring(new RecurringRequest(
 use Netipar\SimplePay\Dto\ApplePayStartRequest;
 use Netipar\SimplePay\Dto\ApplePayDoRequest;
 
-// Start Apple Pay session (returns the API response with applePaySession)
+// Start Apple Pay session (returns the API response with applePaySession).
+// Pass `domain` when the checkout does not run on the host of APP_URL.
 $session = SimplePay::payment()->startApplePay(new ApplePayStartRequest(
     currency: Currency::HUF,
     total: 5000,

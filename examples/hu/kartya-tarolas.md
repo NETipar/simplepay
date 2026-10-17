@@ -121,7 +121,7 @@ SimplePay::cardStorage()->tokenCancel(Currency::HUF, 'token-xyz');
 A kártyatárolással történő fizetés teljes folyamata a következő:
 
 1. **Első fizetés** - A vásárló fizet és hozzájárul a kártya tárolásához (`recurring` paraméter megadásával a `start()` hívásban).
-2. **Kártya tárolása** - A SimplePay tárolja a kártyát, és visszaküldi a `cardId`-t és/vagy `token`-t az IPN-ben.
+2. **Kártya tárolása** - A `start()` válasza a regisztráció ismétlődő fizetéshez használható tokenjeit is visszaadja (`$response->tokens`); ezek a sikeres fizetést jelző IPN-nel aktiválódnak.
 3. **Következő fizetések** - A tárolt `cardId`-vel vagy `token`-nel indíthatod a következő fizetéseket (`do()` vagy `doRecurring()`).
 4. **Kártya törlés** - Amikor a vásárló kérelmezi, törölheted a tárolt kártyát (`cardCancel()`).
 

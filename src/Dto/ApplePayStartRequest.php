@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Netipar\SimplePay\Dto;
 
+use InvalidArgumentException;
 use Netipar\SimplePay\Enums\Currency;
 use Random\RandomException;
 
@@ -27,10 +28,17 @@ readonly class ApplePayStartRequest
      * @return array<string, mixed>
      *
      * @throws RandomException
+     * @throws InvalidArgumentException When neither the domain nor the host of `app.url` is known.
      */
     public function toArray(): array
     {
-        return array_filter([
+        $domain = $this->domain ?? parse_url((string) config('app.url'), PHP_URL_HOST);
+
+        if (! is_string($domain) || $domain === '') {
+            throw new InvalidArgumentException('Apple Pay needs the domain registered at SimplePay: pass `domain` to ApplePayStartRequest.');
+        }
+
+        return [
             'salt' => bin2hex(random_bytes(16)),
             'merchant' => '',
             'orderRef' => $this->orderRef,
@@ -38,9 +46,9 @@ readonly class ApplePayStartRequest
             'total' => $this->total,
             'customerEmail' => $this->customerEmail,
             'language' => $this->language,
-            'domain' => $this->domain ?? parse_url((string) config('app.url'), PHP_URL_HOST),
+            'domain' => $domain,
             'timeout' => date('c', time() + ($this->timeout ?? (int) config('simplepay.timeout', 600))),
             'url' => $this->url,
-        ], fn (mixed $value): bool => $value !== null && $value !== false);
+        ];
     }
 }

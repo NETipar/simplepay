@@ -155,8 +155,8 @@ $response = SimplePay::payment()->start(new PaymentRequest(
     items: [new Item(title: 'Monthly plan', price: 5000, quantity: 1)],
 ));
 
-// 2. Customer completes payment, card is stored...
-// 3. IPN webhook receives cardId in the response...
+// 2. Store the recurring tokens of the registration; they become active when the IPN reports the successful payment
+$recurringToken = $response->tokens[0];
 
 // 4. Monthly recurring charge (merchant-initiated, no customer interaction)
 $result = SimplePay::cardStorage()->doRecurring(new RecurringRequest(

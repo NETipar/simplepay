@@ -258,7 +258,8 @@ it('builds PaymentRequest payload with optional fields', function () {
     $data = $request->toArray();
 
     expect($data['twoStep'])->toBeTrue();
-    expect($data['shippingPrice'])->toBe(500.0);
+    expect($data['shippingCost'])->toBe(500.0)
+        ->and($data)->not->toHaveKey('shippingPrice');
     expect($data['discount'])->toBe(100.0);
     expect($data['customer'])->toBe('CUST-001');
     expect($data['methods'])->toBe(['CARD', 'WIRE']);
@@ -280,7 +281,7 @@ it('builds PaymentRequest payload without optional fields', function () {
     $data = $request->toArray();
 
     expect($data)->not->toHaveKey('twoStep');
-    expect($data)->not->toHaveKey('shippingPrice');
+    expect($data)->not->toHaveKey('shippingCost');
     expect($data)->not->toHaveKey('discount');
     expect($data)->not->toHaveKey('invoice');
     expect($data)->not->toHaveKey('delivery');

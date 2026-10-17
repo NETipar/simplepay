@@ -11,6 +11,9 @@ use Netipar\SimplePay\Dto\BrowserData;
 use Netipar\SimplePay\Dto\CardData;
 use Netipar\SimplePay\Dto\CardStorageDoRequest;
 use Netipar\SimplePay\Dto\EamStartRequest;
+use Netipar\SimplePay\Dto\Item;
+use Netipar\SimplePay\Dto\PaymentRequest;
+use Netipar\SimplePay\Dto\PaymentResponse;
 use Netipar\SimplePay\Dto\RecurringRequest;
 use Netipar\SimplePay\Dto\RtpDoRequest;
 use Netipar\SimplePay\Dto\RtpPayment;
@@ -219,7 +222,7 @@ it('sends a Request to Pay start with language, deadline and announcement', func
     ]);
 });
 
-it('defaults the language and deadline of a Request to Pay start', function () {
+it('defaults the Request to Pay deadline to the two hours and five minutes of the official sample', function () {
     app(RtpService::class)->start(new RtpStartRequest(
         currency: Currency::HUF,
         total: 5000.0,
@@ -232,7 +235,53 @@ it('defaults the language and deadline of a Request to Pay start', function () {
     $body = sentBody();
 
     expect($body['language'])->toBe('HU')
-        ->and($body['deadline'])->toBe($body['timeout']);
+        ->and(strtotime($body['deadline']) - time())->toBeGreaterThanOrEqual(7490)->toBeLessThanOrEqual(7500)
+        ->and($body)->not->toHaveKey('timeout');
+});
+
+it('uses the timeout seconds as the Request to Pay deadline', function () {
+    app(RtpService::class)->start(new RtpStartRequest(
+        currency: Currency::HUF,
+        total: 5000.0,
+        orderRef: 'RTP-1',
+        customerEmail: 'test@example.com',
+        url: 'https://example.com/back',
+        customer: 'Customer Name',
+        timeout: 3600,
+    ));
+
+    expect(strtotime(sentBody()['deadline']) - time())->toBeGreaterThanOrEqual(3590)->toBeLessThanOrEqual(3600);
+});
+
+it('sends the shipping cost and the item description under their official names', function () {
+    app(PaymentService::class)->start(new PaymentRequest(
+        currency: Currency::HUF,
+        total: 2000.0,
+        orderRef: 'ORD-1',
+        customerEmail: 'test@example.com',
+        language: 'HU',
+        url: 'https://example.com/back',
+        items: [new Item(title: 'Product', price: 1500.0, description: 'Blue, size M')],
+        shippingPrice: 500.0,
+    ));
+
+    $body = sentBody();
+
+    expect($body['shippingCost'])->toEqual(500.0)
+        ->and($body)->not->toHaveKey('shippingPrice')
+        ->and($body['items'][0]['desc'])->toBe('Blue, size M')
+        ->and($body['items'][0])->not->toHaveKey('description');
+});
+
+it('keeps the recurring tokens of a card registration start', function () {
+    $response = PaymentResponse::fromArray([
+        'transactionId' => 99123344,
+        'paymentUrl' => 'https://sandbox.simplepay.hu/pay/pay/pspHU/abc',
+        'timeout' => '2026-10-18T12:00:00+02:00',
+        'tokens' => ['SPT-1', 'SPT-2', 'SPT-3'],
+    ]);
+
+    expect($response->tokens)->toBe(['SPT-1', 'SPT-2', 'SPT-3']);
 });
 
 it('sends a Request to Pay batch as a package of transactions', function () {
@@ -346,6 +395,18 @@ it('uses the host of the app url as the default Apple Pay domain', function () {
 
     expect(sentBody())->toMatchArray(['domain' => 'checkout.example.com', 'language' => 'HU']);
 });
+
+it('refuses an Apple Pay start when no domain can be resolved', function () {
+    config()->set('app.url', 'shop.example.com');
+
+    (new ApplePayStartRequest(
+        currency: Currency::HUF,
+        total: 10.0,
+        orderRef: 'AP-1',
+        customerEmail: 'test@example.com',
+        url: 'https://example.com/back',
+    ))->toArray();
+})->throws(InvalidArgumentException::class);
 
 it('completes an Apple Pay payment with the applePayToken field', function () {
     app(PaymentService::class)->doApplePay(new ApplePayDoRequest(
