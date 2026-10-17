@@ -53,7 +53,7 @@ On the package's `simplepay.back` route the pending redirect arrives as `BackEve
 
 ## Batch RTP
 
-Send multiple payment requests at once using the batch RTP method.
+Send multiple payment requests at once using the batch RTP method. The batch is sent as a package: pass `packageRef` to identify it in your system (it is generated otherwise), and `deadline` per payment (30 days from now by default).
 
 ```php
 use Netipar\SimplePay\Facades\SimplePay;
@@ -95,6 +95,10 @@ use Netipar\SimplePay\Facades\SimplePay;
 use Netipar\SimplePay\Enums\Currency;
 
 $query = SimplePay::rtp()->query(Currency::HUF, transactionId: '12345');
+
+// By your order reference, or by the package reference of a batch
+$query = SimplePay::rtp()->query(Currency::HUF, orderRef: 'RTP-ORDER-001');
+$query = SimplePay::rtp()->query(Currency::HUF, packageRef: 'PKG-2026-10');
 ```
 
 ## Refund an RTP Transaction
@@ -105,11 +109,11 @@ Issue a refund for a completed RTP payment.
 use Netipar\SimplePay\Facades\SimplePay;
 use Netipar\SimplePay\Enums\Currency;
 
-// Partial refund
-SimplePay::rtp()->refund(Currency::HUF, '12345', 1000);
+// Partial refund: the refund total, then the original total of the transaction
+SimplePay::rtp()->refund(Currency::HUF, '12345', 1000, originalTotal: 5000);
 
 // Full refund
-SimplePay::rtp()->refund(Currency::HUF, '12345', 5000);
+SimplePay::rtp()->refund(Currency::HUF, '12345', 5000, originalTotal: 5000);
 ```
 
 ## Reverse an RTP Transaction

@@ -13,14 +13,39 @@ use Netipar\SimplePay\Dto\CardStorageDoRequest;
 
 $result = SimplePay::cardStorage()->do(new CardStorageDoRequest(
     currency: Currency::HUF,
-    transactionId: 123456,
+    transactionId: null, // elavult: nem kerül a kérésbe, a következő major verzióban megszűnik
     cardId: 'card-abc-123',
     orderRef: 'ORDER-456',
     total: 3000,
     customerEmail: 'vasarlo@example.com',
-    url: route('simplepay.back'),
+    url: route('simplepay.back'), // ide tér vissza a vásárló 3DS challenge után
+    cardSecret: $cardSecret,      // a kártya tárolásakor megadott titok
+    threeDSReqAuthMethod: '02',   // 01 vendég, 02 regisztrált, 05 harmadik feles belépés
+    browser: $browser,            // lásd lent: „Böngészőadatok a 3DS-hez”
 ));
 ```
+
+### Böngészőadatok a 3DS-hez
+
+A OneClick és az AutoPayment fizetés a vásárló böngészőadatait is elküldi a kártyakibocsátó 3DS-ellenőrzéséhez. A fizetési oldalon gyűjtsd be a `navigator.language`, a `screen.colorDepth`, a `screen.height`, a `screen.width` és a `new Date().getTimezoneOffset()` értékét, a szerveren pedig add hozzá a kérés fejléceit és az IP-címet:
+
+```php
+use Netipar\SimplePay\Dto\BrowserData;
+
+$browser = new BrowserData(
+    accept: (string) $request->header('Accept'),
+    agent: (string) $request->userAgent(),
+    language: $request->input('browser.lang'),
+    javaEnabled: false,
+    colorDepth: (int) $request->input('browser.color'),
+    screenHeight: (int) $request->input('browser.height'),
+    screenWidth: (int) $request->input('browser.width'),
+    timeZone: (int) $request->input('browser.tz'),
+    ip: $request->ip(),
+);
+```
+
+Böngészőadatok nélkül a 3DS-ellenőrzés hibával zárulhat. Ha a kibocsátó challenge-et kér, az API `3004`-es hibakóddal válaszol; ilyenkor a vásárlót a `$e->getResponseData()['redirectUrl']` címre kell irányítani.
 
 ## Ismétlődő fizetés (recurring)
 
@@ -32,14 +57,17 @@ use Netipar\SimplePay\Enums\TransactionType;
 
 $result = SimplePay::cardStorage()->doRecurring(new RecurringRequest(
     currency: Currency::HUF,
-    transactionId: 789012,
+    transactionId: null, // elavult: nem kerül a kérésbe, a következő major verzióban megszűnik
     orderRef: 'ORDER-REC-001',
     total: 5000,
     customerEmail: 'vasarlo@example.com',
     url: route('simplepay.back'),
     type: TransactionType::Mit,
+    token: $recurringToken, // kötelező: a kártyaregisztráció egyik tokenje
 ));
 ```
+
+A `token` nélküli ismétlődő fizetés még a kérés elküldése előtt `InvalidArgumentException`-t dob.
 
 ### Tranzakció típusok
 
