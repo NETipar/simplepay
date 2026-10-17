@@ -175,7 +175,8 @@ $result = SimplePay::payment()->finish(new FinishRequest(
     currency: Currency::HUF,
     transactionId: $transactionId,
     orderRef: 'ORDER-2026-001',
-    approveTotal: 25400,
+    amount: 25400,        // the amount to capture (approveTotal)
+    originalTotal: 25400, // the authorized amount
 ));
 ```
 
@@ -189,7 +190,7 @@ $result = SimplePay::payment()->refund(new RefundRequest(
     currency: Currency::HUF,
     transactionId: $transactionId,
     orderRef: 'ORDER-2026-001',
-    refundTotal: 25400,
+    amount: 25400,
 ));
 
 // Partial refund
@@ -197,7 +198,7 @@ $result = SimplePay::payment()->refund(new RefundRequest(
     currency: Currency::HUF,
     transactionId: $transactionId,
     orderRef: 'ORDER-2026-001',
-    refundTotal: 10000,
+    amount: 10000,
 ));
 ```
 
@@ -381,11 +382,11 @@ Available events (all receive `IpnMessage` DTO):
 The `IpnMessage` DTO contains:
 
 ```php
-$event->ipnMessage->orderRef;       // Your order reference
-$event->ipnMessage->transactionId;  // SimplePay transaction ID
-$event->ipnMessage->status;         // PaymentStatus enum
-$event->ipnMessage->paymentMethod;  // PaymentMethod enum
-$event->ipnMessage->cardMask;       // Masked card number
+$event->ipn->orderRef;       // Your order reference
+$event->ipn->transactionId;  // SimplePay transaction ID
+$event->ipn->status;         // PaymentStatus enum
+$event->ipn->paymentMethod;  // Payment method as a string, e.g. "CARD"
+$event->ipn->cardMask;       // Masked card number
 ```
 
 ## Back URL Handling
@@ -429,7 +430,7 @@ Always use enum cases instead of raw strings:
 - **`PaymentStatus`** -- `INIT`, `FINISHED`, `AUTHORIZED`, `NOTAUTHORIZED`, `INPAYMENT`, `CANCELLED`, `TIMEOUT`, `INFRAUD`, `FRAUD`, `REFUND`, `REVERSED`
 - **`BackEvent`** -- `SUCCESS`, `FAIL`, `CANCEL`, `TIMEOUT`, `PENDING` (Request to Pay)
 - **`TransactionType`** -- `CIT` (Customer Initiated), `MIT` (Merchant Initiated), `REC` (Recurring)
-- **`ErrorCode`** -- 358+ error codes with Hungarian descriptions
+- **`ErrorCode`** -- 350+ error codes with Hungarian descriptions
 
 ## Error Handling
 
