@@ -57,7 +57,7 @@ it('sends an auto payment request to securepay url', function () {
             && $body['currency'] === 'HUF'
             && $body['type'] === 'CIT'
             && $body['cardData']['number'] === '4111111111111111'
-            && $body['sdkVersion'] === 'netipar-simplepay:laravel'
+            && $body['sdkVersion'] === 'SimplePay_PHP_SDK_2.1_Laravel'
             && isset($body['salt']);
     });
 });
@@ -125,13 +125,17 @@ it('includes browser data for 3ds when provided', function () {
     Http::assertSent(function ($httpRequest) {
         $body = json_decode($httpRequest->body(), true);
 
-        return isset($body['browserData'])
-            && $body['browserData']['accept'] === 'text/html'
-            && $body['browserData']['agent'] === 'Mozilla/5.0'
-            && $body['browserData']['language'] === 'hu-HU'
-            && $body['browserData']['javaEnabled'] === false
-            && $body['browserData']['colorDepth'] === 24
-            && $body['browserData']['windowSize'] === '05'
+        return $body['browser'] === [
+            'accept' => 'text/html',
+            'agent' => 'Mozilla/5.0',
+            'java' => false,
+            'lang' => 'hu-HU',
+            'color' => 24,
+            'height' => 1080,
+            'width' => 1920,
+            'tz' => -60,
+        ]
+            && ! isset($body['browserData'])
             && $body['cardData']['holder'] === 'Test User';
     });
 });

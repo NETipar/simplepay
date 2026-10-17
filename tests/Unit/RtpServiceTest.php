@@ -96,7 +96,7 @@ it('sends event-specific redirect urls with the pending url', function () {
     });
 });
 
-it('sends do request to /rtp/do with payments array', function () {
+it('sends do request to /rtp/do with the transactions of the package', function () {
     $request = new RtpDoRequest(
         currency: Currency::HUF,
         payments: [
@@ -124,9 +124,9 @@ it('sends do request to /rtp/do with payments array', function () {
         return str_contains($httpRequest->url(), '/rtp/do')
             && $httpRequest['merchant'] === 'TEST_HUF_MERCHANT'
             && $httpRequest['currency'] === 'HUF'
-            && count($httpRequest['payments']) === 2
-            && $httpRequest['payments'][0]['orderRef'] === 'ORDER-001'
-            && $httpRequest['payments'][1]['orderRef'] === 'ORDER-002';
+            && count($httpRequest['transactions']) === 2
+            && $httpRequest['transactions'][0]['orderRef'] === 'ORDER-001'
+            && $httpRequest['transactions'][1]['orderRef'] === 'ORDER-002';
     });
 });
 
@@ -139,7 +139,7 @@ it('sends query request to /rtp/query with transactionId', function () {
     Http::assertSent(function ($httpRequest) {
         return str_contains($httpRequest->url(), '/rtp/query')
             && $httpRequest['merchant'] === 'TEST_HUF_MERCHANT'
-            && $httpRequest['transactionId'] === '123456';
+            && $httpRequest['transactionIds'] === ['123456'];
     });
 });
 
@@ -151,11 +151,11 @@ it('sends query request to /rtp/query with orderRef', function () {
     Http::assertSent(function ($httpRequest) {
         return str_contains($httpRequest->url(), '/rtp/query')
             && $httpRequest['merchant'] === 'TEST_HUF_MERCHANT'
-            && $httpRequest['orderRef'] === 'ORDER-001';
+            && $httpRequest['orderRefs'] === ['ORDER-001'];
     });
 });
 
-it('sends refund request to /rtp/refund with amount', function () {
+it('sends refund request to /rtp/refund with the refund total', function () {
     $response = $this->rtpService->refund(Currency::HUF, '123456', 500.0);
 
     expect($response)->toBeArray()
@@ -165,7 +165,7 @@ it('sends refund request to /rtp/refund with amount', function () {
         return str_contains($httpRequest->url(), '/rtp/refund')
             && $httpRequest['merchant'] === 'TEST_HUF_MERCHANT'
             && $httpRequest['transactionId'] === '123456'
-            && (float) $httpRequest['amount'] === 500.0;
+            && (float) $httpRequest['refundTotal'] === 500.0;
     });
 });
 

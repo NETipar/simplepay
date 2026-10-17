@@ -64,6 +64,7 @@ readonly class CardStorageService
         $payload = [
             'salt' => bin2hex(random_bytes(16)),
             'merchant' => $merchant,
+            'currency' => $currency->value,
             'cardId' => $cardId,
             'history' => $history,
         ];
@@ -84,6 +85,7 @@ readonly class CardStorageService
         $payload = [
             'salt' => bin2hex(random_bytes(16)),
             'merchant' => $merchant,
+            'currency' => $currency->value,
             'cardId' => $cardId,
         ];
 
@@ -103,6 +105,7 @@ readonly class CardStorageService
         $payload = [
             'salt' => bin2hex(random_bytes(16)),
             'merchant' => $merchant,
+            'currency' => $currency->value,
             'token' => $token,
         ];
 
@@ -122,6 +125,7 @@ readonly class CardStorageService
         $payload = [
             'salt' => bin2hex(random_bytes(16)),
             'merchant' => $merchant,
+            'currency' => $currency->value,
             'token' => $token,
         ];
 

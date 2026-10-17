@@ -6,11 +6,15 @@ namespace Netipar\SimplePay\Dto;
 
 use Netipar\SimplePay\Enums\Currency;
 use Netipar\SimplePay\Enums\TransactionType;
+use Netipar\SimplePay\Support\Client;
 
 readonly class AutoPaymentRequest
 {
     /**
+     * @param  BrowserData|null  $browserData  The customer's browser data, sent as the `browser` object for the issuer's 3DS check.
      * @param  array<int, Item>|null  $items
+     * @param  string|null  $url  Where SimplePay sends the customer back after a 3DS challenge.
+     * @param  string|null  $threeDSReqAuthMethod  How the customer is registered: 01 guest, 02 registered, 05 third party.
      */
     public function __construct(
         public Currency $currency,
@@ -24,6 +28,9 @@ readonly class AutoPaymentRequest
         public ?Address $invoice = null,
         public ?Address $delivery = null,
         public ?array $items = null,
+        public ?string $url = null,
+        public ?string $threeDSReqAuthMethod = null,
+        public ?string $language = null,
     ) {}
 
     /**
@@ -40,12 +47,15 @@ readonly class AutoPaymentRequest
             'customerEmail' => $this->customerEmail,
             'cardData' => $this->cardData->toArray(),
             'type' => $this->type->value,
-            'browserData' => $this->browserData?->toArray(),
+            'browser' => $this->browserData?->toArray(),
+            'threeDSReqAuthMethod' => $this->threeDSReqAuthMethod,
+            'url' => $this->url,
+            'language' => $this->language,
             'customer' => $this->customer,
             'invoice' => $this->invoice?->toArray(),
             'delivery' => $this->delivery?->toArray(),
             'items' => $this->items ? array_map(fn (Item $item) => $item->toArray(), $this->items) : null,
-            'sdkVersion' => 'netipar-simplepay:laravel',
+            'sdkVersion' => Client::SDK_VERSION,
         ], fn (mixed $value): bool => $value !== null);
     }
 }

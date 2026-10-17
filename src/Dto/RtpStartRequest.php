@@ -12,6 +12,8 @@ readonly class RtpStartRequest
     /**
      * @param  array<int, Item>|null  $items
      * @param  RedirectUrls|null  $urls  Event-specific redirect URLs, including `pending`; SimplePay ignores $url when they are sent.
+     * @param  string|null  $deadline  Payment deadline (ISO 8601); defaults to the same moment as the timeout.
+     * @param  string|null  $additionalInfo  The announcement shown with the bank transfer.
      */
     public function __construct(
         public Currency $currency,
@@ -24,6 +26,9 @@ readonly class RtpStartRequest
         public ?array $items = null,
         public ?int $timeout = null,
         public ?RedirectUrls $urls = null,
+        public string $language = 'HU',
+        public ?string $deadline = null,
+        public ?string $additionalInfo = null,
     ) {}
 
     /**
@@ -33,6 +38,8 @@ readonly class RtpStartRequest
      */
     public function toArray(): array
     {
+        $timeout = date('c', time() + ($this->timeout ?? (int) config('simplepay.timeout', 600)));
+
         $data = [
             'salt' => bin2hex(random_bytes(16)),
             'merchant' => '',
@@ -42,7 +49,9 @@ readonly class RtpStartRequest
             'customerEmail' => $this->customerEmail,
             'customer' => $this->customer,
             'url' => $this->url,
-            'timeout' => date('c', time() + ($this->timeout ?? config('simplepay.timeout', 600))),
+            'language' => $this->language,
+            'timeout' => $timeout,
+            'deadline' => $this->deadline ?? $timeout,
             'sdkVersion' => 'SimplePay_PHP_SDK_2.1_Laravel',
         ];
 
@@ -52,6 +61,10 @@ readonly class RtpStartRequest
 
         if ($this->items !== null) {
             $data['items'] = array_map(fn (Item $item) => $item->toArray(), $this->items);
+        }
+
+        if ($this->additionalInfo !== null) {
+            $data['additionalInfo'] = $this->additionalInfo;
         }
 
         if ($this->urls !== null) {

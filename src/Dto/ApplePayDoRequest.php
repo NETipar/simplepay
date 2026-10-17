@@ -26,7 +26,7 @@ readonly class ApplePayDoRequest
             'orderRef' => $this->orderRef,
             'currency' => $this->currency->value,
             'transactionId' => $this->transactionId,
-            'token' => $this->token,
+            'applePayToken' => $this->token,
         ];
     }
 }

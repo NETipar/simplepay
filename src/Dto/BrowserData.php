@@ -4,8 +4,16 @@ declare(strict_types=1);
 
 namespace Netipar\SimplePay\Dto;
 
+/**
+ * The customer's browser data for the issuer's 3DS check, sent as the `browser` object.
+ */
 readonly class BrowserData
 {
+    /**
+     * @param  string  $windowSize  Deprecated: not part of the SimplePay `browser` object, it is not sent.
+     * @param  string|null  $challengePreference  Deprecated: not part of the SimplePay `browser` object, it is not sent.
+     * @param  string|null  $ip  The customer's IP address, e.g. `$request->ip()`.
+     */
     public function __construct(
         public string $accept,
         public string $agent,
@@ -15,8 +23,9 @@ readonly class BrowserData
         public int $screenHeight,
         public int $screenWidth,
         public int $timeZone,
-        public string $windowSize,
+        public string $windowSize = '',
         public ?string $challengePreference = null,
+        public ?string $ip = null,
     ) {}
 
     /**
@@ -27,14 +36,13 @@ readonly class BrowserData
         return array_filter([
             'accept' => $this->accept,
             'agent' => $this->agent,
-            'language' => $this->language,
-            'javaEnabled' => $this->javaEnabled,
-            'colorDepth' => $this->colorDepth,
-            'screenHeight' => $this->screenHeight,
-            'screenWidth' => $this->screenWidth,
-            'timeZone' => $this->timeZone,
-            'windowSize' => $this->windowSize,
-            'challengePreference' => $this->challengePreference,
+            'ip' => $this->ip,
+            'java' => $this->javaEnabled,
+            'lang' => $this->language,
+            'color' => $this->colorDepth,
+            'height' => $this->screenHeight,
+            'width' => $this->screenWidth,
+            'tz' => $this->timeZone,
         ], fn (mixed $value): bool => $value !== null);
     }
 }
