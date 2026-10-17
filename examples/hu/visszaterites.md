@@ -37,6 +37,7 @@ class SimplePayBackResponse implements BackUrlResponse
             BackEvent::Fail    => redirect()->route('payment.failed'),
             BackEvent::Cancel  => redirect()->route('payment.cancelled'),
             BackEvent::Timeout => redirect()->route('payment.timeout'),
+            BackEvent::Pending => redirect()->route('payment.pending'),
         };
     }
 }
@@ -81,6 +82,9 @@ $back->total;         // A fizetés összege (float)
 | `BackEvent::Fail`    | A fizetés sikertelen volt (pl. elutasított kártya)           |
 | `BackEvent::Cancel`  | A vásárló megszakította a fizetést                           |
 | `BackEvent::Timeout` | A fizetés időtúllépésbe futott, a vásárló nem fejezte be     |
+| `BackEvent::Pending` | Csak Request to Pay: a bankszámlaszám megvan, az utalás még nem érkezett meg |
+
+A `$back->event`-re írt `match`-nek a `BackEvent::Pending` esetet is kezelnie kell, különben egy Request to Pay visszairányítás `UnhandledMatchError`-t dob.
 
 ## Példa: összetett kezelés
 
@@ -102,6 +106,7 @@ class SimplePayBackResponse implements BackUrlResponse
             BackEvent::Fail    => $this->handleFailure($back),
             BackEvent::Cancel  => $this->handleCancel($back),
             BackEvent::Timeout => $this->handleTimeout($back),
+            BackEvent::Pending => response()->view('payment.pending', ['orderRef' => $back->orderRef]),
         };
     }
 

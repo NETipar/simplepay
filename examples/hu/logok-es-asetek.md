@@ -22,6 +22,7 @@ public/vendor/simplepay/
 │   ├── simplepay_horizontal_01.png # Fekvő logó v1
 │   ├── simplepay_horizontal_02.png # Fekvő logó v2
 │   ├── simplepay_vertical.png      # Álló logó
+│   ├── simplepay_vertical.svg      # Álló logó (SVG)
 │   ├── simplepay_top.png           # Felül elhelyezett logó
 │   ├── simplepay_*-white.png       # Fehér változatok (sötét háttérhez)
 │   ├── visa_logo_color.png         # Visa (színes)

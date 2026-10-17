@@ -19,7 +19,37 @@ $response = SimplePay::rtp()->start(new RtpStartRequest(
     url: route('simplepay.back'),
     customer: 'Test Customer',
 ));
+
+$response->paymentUrl;    // Redirect the customer here
+$response->transactionId; // SimplePay transaction ID
+$response->timeout;       // null: RTP start responses have no timeout
 ```
+
+### Event-Specific Redirect URLs
+
+Request to Pay adds a `pending` event to the card payment events: the customer gave the bank account number, but the transfer has not arrived yet. SimplePay ignores `url` when `urls` is sent.
+
+```php
+use Netipar\SimplePay\Dto\RedirectUrls;
+
+$response = SimplePay::rtp()->start(new RtpStartRequest(
+    currency: Currency::HUF,
+    total: 5000,
+    orderRef: 'RTP-ORDER-002',
+    customerEmail: 'customer@example.com',
+    url: route('simplepay.back'),
+    customer: 'Test Customer',
+    urls: new RedirectUrls(
+        success: route('payment.success'),
+        fail: route('payment.failed'),
+        cancel: route('checkout'),
+        timeout: route('payment.timeout'),
+        pending: route('payment.pending'),
+    ),
+));
+```
+
+On the package's `simplepay.back` route the pending redirect arrives as `BackEvent::Pending`.
 
 ## Batch RTP
 

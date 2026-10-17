@@ -37,6 +37,7 @@ class SimplePayBackResponse implements BackUrlResponse
             BackEvent::Fail    => redirect()->route('payment.failed'),
             BackEvent::Cancel  => redirect()->route('payment.cancelled'),
             BackEvent::Timeout => redirect()->route('payment.timeout'),
+            BackEvent::Pending => redirect()->route('payment.pending'),
         };
     }
 }
@@ -81,6 +82,9 @@ The `BackResponse` object contains the following properties:
 | `BackEvent::Fail` | Payment failed |
 | `BackEvent::Cancel` | Customer cancelled the payment |
 | `BackEvent::Timeout` | Payment timed out |
+| `BackEvent::Pending` | Request to Pay only: the bank account number is given, the transfer has not arrived yet |
+
+A `match` over `$back->event` has to cover `BackEvent::Pending` as well, otherwise a Request to Pay redirect throws an `UnhandledMatchError`.
 
 ## Example: Advanced Handling
 
@@ -102,6 +106,7 @@ class SimplePayBackResponse implements BackUrlResponse
             BackEvent::Fail    => $this->handleFailure($back),
             BackEvent::Cancel  => $this->handleCancel($back),
             BackEvent::Timeout => $this->handleTimeout($back),
+            BackEvent::Pending => response()->view('payment.pending', ['orderRef' => $back->orderRef]),
         };
     }
 

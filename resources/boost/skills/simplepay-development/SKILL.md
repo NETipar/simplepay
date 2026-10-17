@@ -19,6 +19,8 @@ Use this skill when:
 - Storing cards for OneClick payments or recurring billing
 - Implementing auto (PCI-DSS) payments with direct card data
 - Implementing Request to Pay (RTP) bank transfer flows
+- Accepting Google Pay with the Google Pay button on the merchant's own checkout page
+- Sending customers to separate pages per payment outcome (`urls`)
 - Configuring the simplepay package (sandbox, multi-currency, logging)
 
 ## Package overview
@@ -171,7 +173,7 @@ class CustomBackResponse implements BackUrlResponse
 {
     public function toResponse(BackResponse $response): mixed
     {
-        // $response->event  (BackEvent enum: SUCCESS, FAIL, CANCEL, TIMEOUT)
+        // $response->event  (BackEvent enum: SUCCESS, FAIL, CANCEL, TIMEOUT, PENDING for Request to Pay)
         // $response->transactionId
         // $response->orderRef
 
@@ -280,38 +282,82 @@ SimplePay::cardStorage()->tokenCancel(Currency::HUF, 'token');
 ## Request to Pay (RTP) — bank transfer
 
 ```php
+use Netipar\SimplePay\Dto\RedirectUrls;
 use Netipar\SimplePay\Dto\RtpStartRequest;
 use Netipar\SimplePay\Dto\RtpDoRequest;
 use Netipar\SimplePay\Dto\RtpPayment;
 
-// Start RTP session
-$request = new RtpStartRequest(
+// Start a payment request; the customer approves it in their bank
+$response = SimplePay::rtp()->start(new RtpStartRequest(
     currency: Currency::HUF,
-    customerEmail: 'customer@example.com',
+    total: 5000,
     orderRef: 'ORDER-005',
-    items: [new Item(title: 'Product', price: 5000, quantity: 1)],
-    url: route('payment.back'),
-);
-$response = SimplePay::rtp()->start($request);
+    customerEmail: 'customer@example.com',
+    url: route('simplepay.back'),
+    customer: 'Customer Name',
+    // Optional per-event URLs; RTP adds `pending` (bank account given, transfer not arrived yet)
+    urls: new RedirectUrls(
+        success: route('payment.success'),
+        fail: route('payment.failed'),
+        cancel: route('checkout'),
+        timeout: route('payment.timeout'),
+        pending: route('payment.pending'),
+    ),
+));
+// $response->paymentUrl, $response->transactionId; $response->timeout is null for RTP
 
-// Execute RTP payment
-$doRequest = new RtpDoRequest(
+// Batch payment requests without the customer being present (1–1000 per call)
+$result = SimplePay::rtp()->do(new RtpDoRequest(
     currency: Currency::HUF,
-    transactionId: $response->transactionId,
     payments: [
-        new RtpPayment(
-            bankCode: 'BANK_CODE',
-            accountNumber: 'HU12345678901234567890123456',
-        ),
+        new RtpPayment(orderRef: 'ORDER-006', total: 1000, customerEmail: 'a@example.com', customer: 'Customer A'),
+        new RtpPayment(orderRef: 'ORDER-007', total: 2000, customerEmail: 'b@example.com', customer: 'Customer B'),
     ],
-);
-$result = SimplePay::rtp()->do($doRequest);
+));
 
 // Query/refund/reverse RTP
 SimplePay::rtp()->query(Currency::HUF, transactionId: '12345');
 SimplePay::rtp()->refund(Currency::HUF, transactionId: '12345', amount: 5000);
 SimplePay::rtp()->reverse(Currency::HUF, transactionId: '12345');
 ```
+
+## Google Pay on the merchant's checkout page
+
+Google Pay also works on the SimplePay payment page with `PaymentMethod::CARD`. For the Google Pay button on the merchant's own checkout page:
+
+```php
+use Netipar\SimplePay\Dto\GooglePayDoRequest;
+
+// 1. Checkout page: pass the button configuration to the frontend (Blade variable or Inertia prop)
+$googlePay = SimplePay::payment()->googlePayConfig(Currency::HUF, $order->total);
+// gpayMerchantId, gpayMerchantName, gpayEnvironment (TEST in sandbox), gateway ('simplepay'),
+// gatewayMerchantId, paymentType ('CARD'), total, currency
+
+// 2. Backend endpoint: the frontend posts btoa(paymentMethodData.tokenizationData.token)
+$response = SimplePay::payment()->doGooglePay(new GooglePayDoRequest(
+    currency: Currency::HUF,
+    total: $order->total,
+    orderRef: $order->reference,
+    customerEmail: $order->email,
+    googlePayToken: $request->input('googlePayToken'),
+    url: route('simplepay.back'),   // return URL after a 3DS challenge, from server-side config
+    threeDSReqAuthMethod: '02',     // 01 guest, 02 registered, 05 third-party login
+));
+
+return response()->json([
+    'transactionId' => $response->transactionId,
+    'redirectUrl' => $response->redirectUrl, // set only when a 3DS challenge is required
+]);
+```
+
+- A 3DS challenge (error code 3004) does not throw: `$response->requiresChallenge()` is true and the frontend navigates to `redirectUrl`. Other error codes throw `SimplePayApiException`.
+- Without 3DS the customer stays on the checkout page and SimplePay sends no back redirect.
+- Fulfil the order from the IPN or a `query()`, not from the synchronous response.
+- Needs `SIMPLEPAY_GOOGLE_PAY_MERCHANT_ID` and `SIMPLEPAY_GOOGLE_PAY_MERCHANT_NAME` (Google Pay & Wallet Console). Full JavaScript example: `examples/en/google-pay.md`.
+
+## Event-specific redirect URLs
+
+`PaymentRequest` and `RtpStartRequest` accept `urls: new RedirectUrls(success:, fail:, cancel:, timeout:, pending: null)`. SimplePay ignores `url` when `urls` is sent; `pending` is for Request to Pay only. Pages behind these URLs receive the signed `r`/`s` parameters: verify them with `SimplePay::payment()->handleBack($r, $s)`.
 
 ## Available enums
 
@@ -320,7 +366,7 @@ Always use enum cases instead of raw strings:
 - `Currency`: `HUF`, `EUR`, `USD`
 - `PaymentMethod`: `CARD`, `WIRE`, `EAM`
 - `PaymentStatus`: `INIT`, `FINISHED`, `AUTHORIZED`, `NOTAUTHORIZED`, `INPAYMENT`, `CANCELLED`, `TIMEOUT`, `INFRAUD`, `FRAUD`, `REFUND`, `REVERSED`
-- `BackEvent`: `SUCCESS`, `FAIL`, `CANCEL`, `TIMEOUT`
+- `BackEvent`: `SUCCESS`, `FAIL`, `CANCEL`, `TIMEOUT`, `PENDING` (Request to Pay only; cover it in exhaustive `match` expressions)
 - `TransactionType`: `CIT` (Customer-Initiated), `MIT` (Merchant-Initiated), `REC` (Recurring)
 - `ErrorCode`: 350+ error codes with `description()` method returning Hungarian text
 
@@ -336,6 +382,7 @@ try {
     $e->getErrorCodes();     // [5083]
     $e->hasErrorCode(5083);  // true
     $e->getResolvedCodes();  // [ErrorCode::TokenTimesRequired]
+    $e->getResponseData();   // full API response, e.g. redirectUrl of a 3DS challenge (3004)
 }
 ```
 
@@ -353,11 +400,13 @@ SIMPLEPAY_BACK_URL=https://yourdomain.com/payment/back
 SIMPLEPAY_TIMEOUT=600
 SIMPLEPAY_LOG_CHANNEL=simplepay
 SIMPLEPAY_AUTO_CHALLENGE=true
+SIMPLEPAY_GOOGLE_PAY_MERCHANT_ID=google_pay_merchant_id
+SIMPLEPAY_GOOGLE_PAY_MERCHANT_NAME="Shop name"
 ```
 
 Multi-currency: configure separate merchant credentials per currency (HUF, EUR, USD).
 
-Publish config with: `php artisan vendor:publish --tag=simplepay-config`
+Publish config with: `php artisan vendor:publish --tag=simplepay-config` (or `--tag=simplepay` for config and logos).
 
 ## Logo and asset publishing
 
@@ -419,7 +468,9 @@ All DTOs use readonly properties. Request DTOs include a `toArray()` method that
 | DTO | Purpose |
 |---|---|
 | `PaymentRequest` | Start a payment with items, addresses, methods |
-| `PaymentResponse` | Transaction ID, payment URL, timeout |
+| `PaymentResponse` | Transaction ID, payment URL, timeout (null for RTP starts) |
+| `RedirectUrls` | Per-event redirect URLs (`urls`) for payment and RTP starts |
+| `GooglePayDoRequest` / `GooglePayResponse` | Merchant-side Google Pay charge; `redirectUrl` when a 3DS challenge is required |
 | `FinishRequest` / `FinishResponse` | Two-step capture |
 | `RefundRequest` / `RefundResponse` | Refund with remaining total |
 | `QueryResponse` | Full transaction status |

@@ -22,6 +22,7 @@ public/vendor/simplepay/
 │   ├── simplepay_horizontal_01.png # Horizontal logo v1
 │   ├── simplepay_horizontal_02.png # Horizontal logo v2
 │   ├── simplepay_vertical.png      # Vertical logo
+│   ├── simplepay_vertical.svg      # Vertical logo (SVG)
 │   ├── simplepay_top.png           # Top-placed logo
 │   ├── simplepay_*-white.png       # White variants (for dark backgrounds)
 │   ├── visa_logo_color.png         # Visa (color)

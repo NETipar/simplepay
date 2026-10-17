@@ -43,7 +43,7 @@ return redirect($response->paymentUrl);
 |---|---|---|
 | `$response->transactionId` | `int` | SimplePay transaction ID |
 | `$response->paymentUrl` | `string` | URL to redirect the customer to |
-| `$response->timeout` | `string` | Payment timeout |
+| `$response->timeout` | `?string` | Payment timeout (missing from Request to Pay starts) |
 
 ## Two-Step Payment (Preauthorization)
 
@@ -153,6 +153,35 @@ $response = SimplePay::payment()->start(new PaymentRequest(
 
 return redirect($response->paymentUrl);
 ```
+
+## Event-Specific Redirect URLs
+
+By default SimplePay sends the customer back to `url` after every outcome. To use a separate page per outcome, pass `urls`. SimplePay ignores `url` when `urls` is sent, so give all four events.
+
+```php
+use Netipar\SimplePay\Dto\RedirectUrls;
+
+$response = SimplePay::payment()->start(new PaymentRequest(
+    currency: Currency::HUF,
+    total: 2500,
+    orderRef: 'ORDER-124',
+    customerEmail: 'customer@example.com',
+    language: 'HU',
+    url: route('simplepay.back'),
+    urls: new RedirectUrls(
+        success: route('payment.success'),
+        fail: route('payment.failed'),
+        cancel: route('checkout'),
+        timeout: route('payment.timeout'),
+    ),
+));
+```
+
+These pages receive the signed `r` and `s` query parameters too; verify them with `SimplePay::payment()->handleBack($request->query('r'), $request->query('s'))`.
+
+## Reusing an Order Reference
+
+`orderRef` identifies the order in your system. The order reference of a failed transaction can be sent again until the first successful payment; every new start creates a new SimplePay `transactionId`, so store the transaction ID of each attempt.
 
 ## Available Payment Methods
 

@@ -21,6 +21,8 @@ SIMPLEPAY_EUR_SECRET_KEY=your_eur_secret_key
 SIMPLEPAY_BACK_URL=https://yourdomain.com/payment/back
 SIMPLEPAY_LOG_CHANNEL=simplepay
 SIMPLEPAY_TIMEOUT=600
+SIMPLEPAY_GOOGLE_PAY_MERCHANT_ID=your_google_pay_merchant_id
+SIMPLEPAY_GOOGLE_PAY_MERCHANT_NAME="Your Shop"
 ```
 
 ## Configuration Structure
@@ -111,6 +113,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Google Pay
+    |--------------------------------------------------------------------------
+    |
+    | The Google Pay merchant ID and name for the Google Pay button on your
+    | own checkout page.
+    |
+    */
+    'google_pay' => [
+        'merchant_id' => env('SIMPLEPAY_GOOGLE_PAY_MERCHANT_ID'),
+        'merchant_name' => env('SIMPLEPAY_GOOGLE_PAY_MERCHANT_NAME'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Auto Challenge
     |--------------------------------------------------------------------------
     |
@@ -173,3 +189,7 @@ The default value is 600 seconds (10 minutes).
 ## Auto Challenge
 
 When `auto_challenge` is enabled, the package automatically handles 3D Secure challenge flows during card payments. This is enabled by default and is recommended for most use cases.
+
+## Google Pay
+
+`google_pay.merchant_id` and `google_pay.merchant_name` come from the Google Pay & Wallet Console. They are only needed when the Google Pay button is on your own checkout page; see [Google Pay on Your Checkout Page](google-pay.md).
