@@ -18,7 +18,7 @@ readonly class PaymentResponse
     public static function fromArray(array $data): self
     {
         return new self(
-            transactionId: $data['transactionId'],
+            transactionId: (int) $data['transactionId'],
             paymentUrl: $data['paymentUrl'],
             timeout: $data['timeout'],
         );
