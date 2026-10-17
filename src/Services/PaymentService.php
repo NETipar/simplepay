@@ -123,7 +123,11 @@ readonly class PaymentService
         } catch (SimplePayApiException $exception) {
             $response = $exception->getResponseData();
 
-            if (! $exception->hasErrorCode(ErrorCode::ThreeDsChallengeRedirect->value) || ! is_string($response['redirectUrl'] ?? null)) {
+            $isChallenge = $exception->hasErrorCode(ErrorCode::ThreeDsChallengeRedirect->value)
+                && is_string($response['redirectUrl'] ?? null)
+                && isset($response['transactionId'], $response['orderRef']);
+
+            if (! $isChallenge) {
                 throw $exception;
             }
         }

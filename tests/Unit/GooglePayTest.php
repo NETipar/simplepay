@@ -100,6 +100,17 @@ it('throws when a 3004 response has no redirect url', function () {
     app(PaymentService::class)->doGooglePay(googlePayRequest());
 })->throws(SimplePayApiException::class);
 
+it('throws when a 3004 response has no transaction id', function () {
+    Http::fake([
+        'sandbox.simplepay.hu/payment/v2/dogooglepay' => fakeSimplePayResponse([
+            'errorCodes' => [3004],
+            'redirectUrl' => 'https://sb-checkout.simplepay.hu/pay/pay/pspHU/challenge',
+        ], 'TEST_HUF_SECRET_KEY'),
+    ]);
+
+    app(PaymentService::class)->doGooglePay(googlePayRequest());
+})->throws(SimplePayApiException::class);
+
 it('throws for other error codes', function () {
     Http::fake([
         'sandbox.simplepay.hu/payment/v2/dogooglepay' => fakeSimplePayResponse([
