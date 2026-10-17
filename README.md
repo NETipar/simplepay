@@ -138,6 +138,26 @@ $response->timeout;       // Payment timeout
 return redirect($response->paymentUrl);
 ```
 
+### Event-Specific Redirect URLs
+
+SimplePay returns the customer to `url` after every outcome. Pass `urls` to use a separate page per outcome; SimplePay ignores `url` when `urls` is sent:
+
+```php
+use Netipar\SimplePay\Dto\RedirectUrls;
+
+$response = SimplePay::payment()->start(new PaymentRequest(
+    // ... same as above
+    urls: new RedirectUrls(
+        success: route('payment.success'),
+        fail: route('payment.failed'),
+        cancel: route('checkout'),
+        timeout: route('payment.timeout'),
+    ),
+));
+```
+
+The order reference of a failed transaction can be sent again until the first successful payment; every start creates a new SimplePay transaction ID.
+
 ### Two-Step Payment (Authorize + Finish)
 
 ```php
@@ -261,6 +281,35 @@ $result = SimplePay::payment()->doApplePay(new ApplePayDoRequest(
 ));
 ```
 
+### Google Pay on Your Checkout Page
+
+Google Pay is also available on the SimplePay payment page with `PaymentMethod::CARD`. To show the Google Pay button on your own checkout page, render it with `googlePayConfig()` and charge the token from your backend:
+
+```php
+use Netipar\SimplePay\Dto\GooglePayDoRequest;
+
+// Checkout page: the values of the Google Pay button
+$googlePay = SimplePay::payment()->googlePayConfig(Currency::HUF, 5000);
+
+// Backend endpoint called by the button with the Base64 encoded Google Pay token
+$validated = $request->validate(['googlePayToken' => ['required', 'string']]);
+
+$response = SimplePay::payment()->doGooglePay(new GooglePayDoRequest(
+    currency: Currency::HUF,
+    total: 5000,
+    orderRef: 'ORDER-GP-001',
+    customerEmail: 'customer@example.com',
+    googlePayToken: $validated['googlePayToken'],
+    url: route('simplepay.back'), // where SimplePay returns the customer after a 3DS challenge
+));
+
+if ($response->requiresChallenge()) {
+    // Send the browser to $response->redirectUrl
+}
+```
+
+Set `SIMPLEPAY_GOOGLE_PAY_MERCHANT_ID` and `SIMPLEPAY_GOOGLE_PAY_MERCHANT_NAME` from the Google Pay & Wallet Console. The full flow with the JavaScript button is in the [Google Pay example](examples/en/google-pay.md).
+
 ### EAM / Qvik Payment
 
 ```php
@@ -287,6 +336,7 @@ $result = SimplePay::rtp()->start(new RtpStartRequest(
     orderRef: 'RTP-2026-001',
     customerEmail: 'customer@example.com',
     url: route('simplepay.back'),
+    customer: 'Customer Name',
 ));
 
 // Query RTP status
@@ -298,6 +348,8 @@ SimplePay::rtp()->refund(Currency::HUF, $transactionId, 15000);
 // Reverse RTP
 SimplePay::rtp()->reverse(Currency::HUF, $transactionId);
 ```
+
+Request to Pay back redirects can carry `BackEvent::Pending`: the customer gave the bank account number, but the transfer has not arrived yet. `RtpStartRequest` accepts `urls` with a `pending` URL as well.
 
 ## IPN Webhook
 
@@ -362,6 +414,7 @@ class SimplePayBackResponse implements BackUrlResponse
             BackEvent::Fail    => redirect()->route('payment.failed'),
             BackEvent::Cancel  => redirect()->route('checkout'),
             BackEvent::Timeout => redirect()->route('payment.timeout'),
+            BackEvent::Pending => redirect()->route('payment.pending'), // Request to Pay only
         };
     }
 }
@@ -374,7 +427,7 @@ Always use enum cases instead of raw strings:
 - **`Currency`** -- `HUF`, `EUR`, `USD`
 - **`PaymentMethod`** -- `CARD`, `WIRE`, `EAM`
 - **`PaymentStatus`** -- `INIT`, `FINISHED`, `AUTHORIZED`, `NOTAUTHORIZED`, `INPAYMENT`, `CANCELLED`, `TIMEOUT`, `INFRAUD`, `FRAUD`, `REFUND`, `REVERSED`
-- **`BackEvent`** -- `SUCCESS`, `FAIL`, `CANCEL`, `TIMEOUT`
+- **`BackEvent`** -- `SUCCESS`, `FAIL`, `CANCEL`, `TIMEOUT`, `PENDING` (Request to Pay)
 - **`TransactionType`** -- `CIT` (Customer Initiated), `MIT` (Merchant Initiated), `REC` (Recurring)
 - **`ErrorCode`** -- 358+ error codes with Hungarian descriptions
 
@@ -424,6 +477,8 @@ SIMPLEPAY_BACK_URL=https://yourdomain.com/payment/back
 SIMPLEPAY_TIMEOUT=600
 SIMPLEPAY_LOG_CHANNEL=simplepay
 SIMPLEPAY_AUTO_CHALLENGE=true
+SIMPLEPAY_GOOGLE_PAY_MERCHANT_ID=your_google_pay_merchant_id
+SIMPLEPAY_GOOGLE_PAY_MERCHANT_NAME="Your Shop"
 ```
 
 Multi-currency support -- each currency has its own merchant credentials:
@@ -457,7 +512,7 @@ Usage in Blade, Vue.js, or React:
 <img src="/vendor/simplepay/logos/simplepay_200x50.png" alt="SimplePay" />
 ```
 
-Available logos: SimplePay (multiple sizes/orientations + white variants), Visa, Mastercard, Maestro, Amex, Apple Pay, Google Pay, Qvik, OTP SZÉP. Pre-composed card type combinations are also included. See [examples](examples/en/logos-and-assets.md) for Blade, Vue.js, and React checkout page examples.
+Available logos: SimplePay (multiple sizes/orientations + white variants, and an SVG of the vertical logo), Visa, Mastercard, Maestro, Amex, Apple Pay, Google Pay, Qvik, OTP SZÉP. Pre-composed card type combinations are also included. See [examples](examples/en/logos-and-assets.md) for Blade, Vue.js, and React checkout page examples.
 
 ## Logging
 
@@ -475,7 +530,7 @@ Set `SIMPLEPAY_LOG_CHANNEL` to any Laravel log channel name. Example dedicated c
 
 | Service | Access | Purpose |
 |---|---|---|
-| `PaymentService` | `SimplePay::payment()` | Standard payments, refunds, queries, Apple Pay, EAM |
+| `PaymentService` | `SimplePay::payment()` | Standard payments, refunds, queries, Apple Pay, Google Pay, EAM |
 | `CardStorageService` | `SimplePay::cardStorage()` | OneClick, recurring, card/token management |
 | `AutoPaymentService` | `SimplePay::autoPayment()` | PCI-DSS direct card payments |
 | `RtpService` | `SimplePay::rtp()` | Request to Pay (bank transfers) |
@@ -483,6 +538,8 @@ Set `SIMPLEPAY_LOG_CHANNEL` to any Laravel log channel name. Example dedicated c
 ## SDK Compatibility
 
 This package is built based on the **SimplePay PHP SDK v2.1** (API v2). All API requests include the `sdkVersion: SimplePay_PHP_SDK_2.1_Laravel` identifier.
+
+The merchant-side Google Pay flow follows the Payment PHP SDK 2.1.5 (2026-06-27) and the SimplePay Google Pay documentation (2026-09-01); the `urls` and `pending` handling follows the Request to Pay documentation (2026-08-17).
 
 ## Examples
 

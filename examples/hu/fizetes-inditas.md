@@ -44,7 +44,7 @@ A `start()` metódus által visszaadott válasz a következő adatokat tartalmaz
 ```php
 $response->transactionId; // SimplePay tranzakció azonosító (int)
 $response->paymentUrl;    // Fizetési oldal URL, ahova a vásárlót át kell irányítani
-$response->timeout;       // Időtúllépés másodpercben
+$response->timeout;       // A fizetés indításának határideje (Request to Pay indításnál null)
 ```
 
 ## Kétlépcsős fizetés (preautorizáció)
@@ -165,6 +165,35 @@ $response = SimplePay::payment()->start(new PaymentRequest(
     ],
 ));
 ```
+
+## Eseményenkénti visszairányítási címek
+
+Alapesetben a SimplePay minden kimenet után az `url` címre irányítja vissza a vásárlót. Ha kimenetenként külön oldalt szeretnél, add meg az `urls` mezőt. Ha az `urls` szerepel a kérésben, a SimplePay figyelmen kívül hagyja az `url`-t, ezért mind a négy eseményt meg kell adni.
+
+```php
+use Netipar\SimplePay\Dto\RedirectUrls;
+
+$response = SimplePay::payment()->start(new PaymentRequest(
+    currency: Currency::HUF,
+    total: 2500,
+    orderRef: 'ORDER-124',
+    customerEmail: 'vasarlo@example.com',
+    language: 'HU',
+    url: route('simplepay.back'),
+    urls: new RedirectUrls(
+        success: route('payment.success'),
+        fail: route('payment.failed'),
+        cancel: route('checkout'),
+        timeout: route('payment.timeout'),
+    ),
+));
+```
+
+Ezek az oldalak is megkapják az aláírt `r` és `s` paramétert; ellenőrizd őket a `SimplePay::payment()->handleBack($request->query('r'), $request->query('s'))` hívással.
+
+## Rendelésazonosító újrahasználata
+
+Az `orderRef` a rendelést azonosítja a rendszeredben. Egy sikertelen tranzakció rendelésazonosítója az első sikeres fizetésig újra elküldhető; minden új indítás új SimplePay `transactionId`-t kap, ezért a tranzakcióazonosítót próbálkozásonként tárold.
 
 ## Fizetési módszerek
 

@@ -21,6 +21,8 @@ SIMPLEPAY_EUR_SECRET_KEY=your_eur_secret_key
 SIMPLEPAY_BACK_URL=https://yourdomain.com/payment/back
 SIMPLEPAY_LOG_CHANNEL=simplepay
 SIMPLEPAY_TIMEOUT=600
+SIMPLEPAY_GOOGLE_PAY_MERCHANT_ID=your_google_pay_merchant_id
+SIMPLEPAY_GOOGLE_PAY_MERCHANT_NAME="Your Shop"
 ```
 
 ## Konfigurációs struktúra
@@ -113,6 +115,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Google Pay
+    |--------------------------------------------------------------------------
+    |
+    | A Google Pay kereskedői azonosító és név a saját fizetési oldalon
+    | megjelenő Google Pay gombhoz.
+    |
+    */
+    'google_pay' => [
+        'merchant_id' => env('SIMPLEPAY_GOOGLE_PAY_MERCHANT_ID'),
+        'merchant_name' => env('SIMPLEPAY_GOOGLE_PAY_MERCHANT_NAME'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Auto challenge (3DS)
     |--------------------------------------------------------------------------
     |
@@ -197,3 +213,7 @@ Az `auto_challenge` beállítás szabályozza, hogy a package automatikusan kér
 ```env
 SIMPLEPAY_AUTO_CHALLENGE=true
 ```
+
+## Google Pay
+
+A `google_pay.merchant_id` és a `google_pay.merchant_name` értéke a Google Pay & Wallet Console-ból származik. Csak akkor kell, ha a Google Pay gomb a saját fizetési oldaladon jelenik meg; lásd [Google Pay a saját fizetési oldalon](google-pay.md).

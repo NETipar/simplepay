@@ -23,7 +23,34 @@ $response = SimplePay::rtp()->start(new RtpStartRequest(
 // Válasz adatok
 $response->paymentUrl;    // URL a fizetési oldalhoz
 $response->transactionId; // SimplePay tranzakció azonosító
+$response->timeout;       // null: az RTP indítás válaszában nincs timeout
 ```
+
+### Eseményenkénti visszairányítási címek
+
+A Request to Pay a kártyás események mellé egy `pending` eseményt is ad: a vásárló már megadta a bankszámlaszámát, de az utalás még nem érkezett meg. Ha az `urls` szerepel a kérésben, a SimplePay figyelmen kívül hagyja az `url`-t.
+
+```php
+use Netipar\SimplePay\Dto\RedirectUrls;
+
+$response = SimplePay::rtp()->start(new RtpStartRequest(
+    currency: Currency::HUF,
+    total: 5000,
+    orderRef: 'RTP-ORDER-002',
+    customerEmail: 'vasarlo@example.com',
+    url: route('simplepay.back'),
+    customer: 'Teszt Vásárló',
+    urls: new RedirectUrls(
+        success: route('payment.success'),
+        fail: route('payment.failed'),
+        cancel: route('checkout'),
+        timeout: route('payment.timeout'),
+        pending: route('payment.pending'),
+    ),
+));
+```
+
+A csomag `simplepay.back` route-ján a pending visszairányítás `BackEvent::Pending` eseményként érkezik.
 
 ## Kötegelt RTP
 
