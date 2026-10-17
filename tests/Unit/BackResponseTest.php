@@ -25,6 +25,20 @@ it('parses a valid back response', function () {
     expect($response->merchant)->toBe('TEST_HUF_MERCHANT');
 });
 
+it('parses a pending back response of a Request to Pay', function () {
+    $data = json_encode([
+        'e' => 'PENDING',
+        't' => 502272810,
+        'o' => 'RTP-001',
+        'm' => 'TEST_HUF_MERCHANT',
+    ]);
+
+    $response = new BackResponse(base64_encode($data), Signature::generate('TEST_HUF_SECRET_KEY', $data));
+
+    expect($response->event)->toBe(BackEvent::Pending)
+        ->and($response->transactionId)->toBe(502272810);
+});
+
 it('throws on invalid base64', function () {
     new BackResponse('not-valid-base64!!!', 'fake-signature');
 })->throws(RuntimeException::class);

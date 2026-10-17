@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Http;
 use Netipar\SimplePay\Dto\PaymentResponse;
+use Netipar\SimplePay\Dto\RedirectUrls;
 use Netipar\SimplePay\Dto\RtpDoRequest;
 use Netipar\SimplePay\Dto\RtpPayment;
 use Netipar\SimplePay\Dto\RtpStartRequest;
@@ -63,6 +64,35 @@ it('sends start request to /rtp/start and returns PaymentResponse', function () 
             && (float) $httpRequest['total'] === 1000.0
             && $httpRequest['customerEmail'] === 'test@example.com'
             && $httpRequest['customer'] === 'Test Customer';
+    });
+});
+
+it('sends event-specific redirect urls with the pending url', function () {
+    $this->rtpService->start(new RtpStartRequest(
+        currency: Currency::HUF,
+        total: 1000.0,
+        orderRef: 'ORDER-URLS',
+        customerEmail: 'test@example.com',
+        url: 'https://example.com/rtp/back',
+        customer: 'Test Customer',
+        urls: new RedirectUrls(
+            success: 'https://example.com/rtp/success',
+            fail: 'https://example.com/rtp/fail',
+            cancel: 'https://example.com/rtp/cancel',
+            timeout: 'https://example.com/rtp/timeout',
+            pending: 'https://example.com/rtp/pending',
+        ),
+    ));
+
+    Http::assertSent(function ($httpRequest) {
+        return str_contains($httpRequest->url(), '/rtp/start')
+            && $httpRequest['urls'] === [
+                'success' => 'https://example.com/rtp/success',
+                'fail' => 'https://example.com/rtp/fail',
+                'cancel' => 'https://example.com/rtp/cancel',
+                'timeout' => 'https://example.com/rtp/timeout',
+                'pending' => 'https://example.com/rtp/pending',
+            ];
     });
 });
 

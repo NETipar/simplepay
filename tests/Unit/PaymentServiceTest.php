@@ -2,26 +2,16 @@
 
 declare(strict_types=1);
 
-use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Support\Facades\Http;
 use Netipar\SimplePay\Dto\FinishRequest;
 use Netipar\SimplePay\Dto\PaymentRequest;
+use Netipar\SimplePay\Dto\RedirectUrls;
 use Netipar\SimplePay\Dto\RefundRequest;
 use Netipar\SimplePay\Enums\Currency;
 use Netipar\SimplePay\Enums\PaymentMethod;
 use Netipar\SimplePay\Exceptions\SimplePayApiException;
 use Netipar\SimplePay\Services\PaymentService;
 use Netipar\SimplePay\Support\Signature;
-
-function fakeSimplePayResponse(array $data, string $secretKey): PromiseInterface
-{
-    $json = json_encode($data);
-    $signature = Signature::generate($secretKey, $json);
-
-    return Http::response($data, 200, [
-        'Signature' => $signature,
-    ]);
-}
 
 it('sends a start request and returns PaymentResponse', function () {
     $secretKey = 'TEST_HUF_SECRET_KEY';
@@ -295,6 +285,31 @@ it('builds PaymentRequest payload without optional fields', function () {
     expect($data)->not->toHaveKey('invoice');
     expect($data)->not->toHaveKey('delivery');
     expect($data)->not->toHaveKey('items');
+    expect($data)->not->toHaveKey('urls');
+});
+
+it('builds PaymentRequest payload with event-specific redirect urls', function () {
+    $request = new PaymentRequest(
+        currency: Currency::HUF,
+        total: 1500.0,
+        orderRef: 'ORD-URLS',
+        customerEmail: 'test@example.com',
+        language: 'HU',
+        url: 'https://example.com/back',
+        urls: new RedirectUrls(
+            success: 'https://example.com/payment/success',
+            fail: 'https://example.com/payment/fail',
+            cancel: 'https://example.com/payment/cancel',
+            timeout: 'https://example.com/payment/timeout',
+        ),
+    );
+
+    expect($request->toArray()['urls'])->toBe([
+        'success' => 'https://example.com/payment/success',
+        'fail' => 'https://example.com/payment/fail',
+        'cancel' => 'https://example.com/payment/cancel',
+        'timeout' => 'https://example.com/payment/timeout',
+    ]);
 });
 
 it('throws SimplePayApiException when API returns errorCodes', function () {

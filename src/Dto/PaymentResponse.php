@@ -6,10 +6,13 @@ namespace Netipar\SimplePay\Dto;
 
 readonly class PaymentResponse
 {
+    /**
+     * @param  string|null  $timeout  Missing from Request to Pay start responses.
+     */
     public function __construct(
         public int $transactionId,
         public string $paymentUrl,
-        public string $timeout,
+        public ?string $timeout = null,
     ) {}
 
     /**
@@ -20,7 +23,7 @@ readonly class PaymentResponse
         return new self(
             transactionId: (int) $data['transactionId'],
             paymentUrl: $data['paymentUrl'],
-            timeout: $data['timeout'],
+            timeout: $data['timeout'] ?? null,
         );
     }
 }

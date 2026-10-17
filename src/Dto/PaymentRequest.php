@@ -14,6 +14,7 @@ readonly class PaymentRequest
      * @param  array<int, PaymentMethod>  $methods
      * @param  array<int, Item>|null  $items
      * @param  array<string, mixed>|null  $recurring
+     * @param  RedirectUrls|null  $urls  Event-specific redirect URLs; SimplePay ignores $url when they are sent.
      */
     public function __construct(
         public Currency $currency,
@@ -36,6 +37,7 @@ readonly class PaymentRequest
         public ?float $shippingPrice = null,
         public ?float $discount = null,
         public ?string $customer = null,
+        public ?RedirectUrls $urls = null,
     ) {}
 
     /**
@@ -105,6 +107,10 @@ readonly class PaymentRequest
 
         if ($this->customer !== null) {
             $data['customer'] = $this->customer;
+        }
+
+        if ($this->urls !== null) {
+            $data['urls'] = $this->urls->toArray();
         }
 
         return $data;

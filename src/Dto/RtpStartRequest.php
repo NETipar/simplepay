@@ -11,6 +11,7 @@ readonly class RtpStartRequest
 {
     /**
      * @param  array<int, Item>|null  $items
+     * @param  RedirectUrls|null  $urls  Event-specific redirect URLs, including `pending`; SimplePay ignores $url when they are sent.
      */
     public function __construct(
         public Currency $currency,
@@ -22,6 +23,7 @@ readonly class RtpStartRequest
         public ?Address $invoice = null,
         public ?array $items = null,
         public ?int $timeout = null,
+        public ?RedirectUrls $urls = null,
     ) {}
 
     /**
@@ -50,6 +52,10 @@ readonly class RtpStartRequest
 
         if ($this->items !== null) {
             $data['items'] = array_map(fn (Item $item) => $item->toArray(), $this->items);
+        }
+
+        if ($this->urls !== null) {
+            $data['urls'] = $this->urls->toArray();
         }
 
         return $data;
