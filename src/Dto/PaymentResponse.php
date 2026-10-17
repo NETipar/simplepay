@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Dto;
 
 readonly class PaymentResponse
@@ -10,6 +12,9 @@ readonly class PaymentResponse
         public string $timeout,
     ) {}
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public static function fromArray(array $data): self
     {
         return new self(

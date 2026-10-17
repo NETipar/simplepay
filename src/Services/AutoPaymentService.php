@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Services;
 
 use Illuminate\Http\Client\ConnectionException;
@@ -15,6 +17,8 @@ readonly class AutoPaymentService
     ) {}
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws ConnectionException
      */
     public function auto(AutoPaymentRequest $request): array

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\Event;
 use Illuminate\Testing\TestResponse;
 use Netipar\SimplePay\Events\IpnReceived;

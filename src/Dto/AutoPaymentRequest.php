@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Dto;
 
 use Netipar\SimplePay\Enums\Currency;
@@ -24,6 +26,9 @@ readonly class AutoPaymentRequest
         public ?array $items = null,
     ) {}
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         return array_filter([
@@ -41,6 +46,6 @@ readonly class AutoPaymentRequest
             'delivery' => $this->delivery?->toArray(),
             'items' => $this->items ? array_map(fn (Item $item) => $item->toArray(), $this->items) : null,
             'sdkVersion' => 'netipar-simplepay:laravel',
-        ], fn ($value) => $value !== null);
+        ], fn (mixed $value): bool => $value !== null);
     }
 }

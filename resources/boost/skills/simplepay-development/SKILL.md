@@ -1,6 +1,9 @@
 ---
 name: simplepay-development
 description: Build and integrate SimplePay online payment features using the netipar/simplepay Laravel package, including payment start, IPN webhook handling, back redirects, refunds, two-step payments, card storage (OneClick), recurring payments, auto payments, and Request to Pay (RTP) flows.
+license: MIT
+metadata:
+  author: NETipar
 ---
 
 # SimplePay Payment Integration Development

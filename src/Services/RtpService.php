@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Services;
 
 use Illuminate\Http\Client\ConnectionException;
@@ -34,6 +36,8 @@ readonly class RtpService
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException
      * @throws ConnectionException
      */
@@ -47,6 +51,8 @@ readonly class RtpService
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException|ConnectionException
      */
     public function query(Currency $currency, ?string $transactionId = null, ?string $orderRef = null): array
@@ -70,6 +76,8 @@ readonly class RtpService
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException|ConnectionException
      */
     public function refund(Currency $currency, string $transactionId, float $amount): array
@@ -87,6 +95,8 @@ readonly class RtpService
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException|ConnectionException
      */
     public function reverse(Currency $currency, string $transactionId): array

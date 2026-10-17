@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Netipar\SimplePay\Dto\BackResponse;
 use Netipar\SimplePay\Enums\BackEvent;
 use Netipar\SimplePay\Support\Signature;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Dto;
 
 readonly class BrowserData
@@ -17,6 +19,9 @@ readonly class BrowserData
         public ?string $challengePreference = null,
     ) {}
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         return array_filter([
@@ -30,6 +35,6 @@ readonly class BrowserData
             'timeZone' => $this->timeZone,
             'windowSize' => $this->windowSize,
             'challengePreference' => $this->challengePreference,
-        ], fn ($value) => $value !== null);
+        ], fn (mixed $value): bool => $value !== null);
     }
 }

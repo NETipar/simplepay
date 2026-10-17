@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Dto;
 
 readonly class Address
@@ -16,6 +18,9 @@ readonly class Address
         public ?string $phone = null,
     ) {}
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         return array_filter([
@@ -28,6 +33,6 @@ readonly class Address
             'address' => $this->address,
             'address2' => $this->address2,
             'phone' => $this->phone,
-        ], fn ($value) => $value !== null);
+        ], fn (mixed $value): bool => $value !== null);
     }
 }

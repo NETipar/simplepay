@@ -1,66 +1,90 @@
-name: Tests
+name: tests
 
 on:
   push:
     branches:
       - main
+      - '*.x'
   pull_request:
-    branches:
-      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  pint:
-    runs-on: ubuntu-latest
-    name: Pint
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.4
-          extensions: dom, libxml, simplexml
-          coverage: none
-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction
-
-      - name: Run Pint
-        run: vendor/bin/pint --test
-
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
-      fail-fast: true
+      # Let every lane report, so a break shows whether it is matrix-wide or
+      # specific to one PHP/Laravel/stability combination. The concurrency
+      # group above still cancels superseded runs.
+      fail-fast: false
       matrix:
-        php: [8.2, 8.3, 8.4]
-        laravel: [11.*, 12.*]
+        os: [ubuntu-latest, windows-latest]
+        php: [8.3, 8.4, 8.5]
+        laravel: [12.*, 13.*]
+        stability: [prefer-lowest, prefer-stable]
         include:
-          - laravel: 11.*
-            testbench: 9.*
           - laravel: 12.*
             testbench: 10.*
+          - laravel: 13.*
+            testbench: 11.*
 
-    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
+    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, libxml, simplexml
+          extensions: dom, curl, libxml, mbstring, zip, fileinfo, sqlite, pdo_sqlite, bcmath, intl
+          # setup-php seeds php.ini from php.ini-production, where
+          # variables_order="GPCS" leaves $_ENV empty; the type coverage step
+          # needs it populated, as in a normal local install.
+          ini-values: error_reporting=E_ALL, variables_order=EGPCS
+          tools: composer:v2
           coverage: none
 
       - name: Install dependencies
         run: |
-          composer require "illuminate/support:${{ matrix.laravel }}" "illuminate/http:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --dev --no-interaction --no-update
-          composer update --prefer-dist --no-interaction
+          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer update --${{ matrix.stability }} --prefer-dist --no-interaction --no-progress --no-scripts
+          composer run prepare
 
-      - name: Run tests
+      - name: PHPStan
+        if: runner.os != 'Windows'
+        run: composer analyse
+
+      # Larastan boots Laravel in every PHPStan worker, and each boot rewrites
+      # the Testbench skeleton's bootstrap/cache/services.php. Concurrent
+      # rename() onto that file fails on Windows, so this lane analyses in a
+      # single process. See .github/phpstan-windows.neon.
+      - name: PHPStan (Windows)
+        if: runner.os == 'Windows'
+        run: vendor/bin/phpstan analyse --configuration=.github/phpstan-windows.neon
+
+      - name: Linter
+        run: composer lint:check
+
+      # pest-plugin-type-coverage 4.x workers share one cache file without a
+      # blocking lock; __PEST_PLUGIN_ENV keeps the analysis in one process.
+      - name: Type Coverage
+        if: runner.os != 'Windows'
+        env:
+          __PEST_PLUGIN_ENV: '1'
+        run: composer test:types
+
+      - name: Test Suite
+        if: runner.os != 'Windows'
+        run: composer test:unit
+
+      - name: Test Suite (Windows)
+        if: runner.os == 'Windows'
         run: vendor/bin/pest

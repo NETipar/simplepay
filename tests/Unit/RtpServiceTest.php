@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\Http;
 use Netipar\SimplePay\Dto\PaymentResponse;
 use Netipar\SimplePay\Dto\RtpDoRequest;

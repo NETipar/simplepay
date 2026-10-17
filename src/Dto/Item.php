@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Dto;
 
 readonly class Item
@@ -13,6 +15,9 @@ readonly class Item
         public ?float $tax = null,
     ) {}
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         return array_filter([
@@ -22,6 +27,6 @@ readonly class Item
             'amount' => $this->quantity,
             'price' => $this->price,
             'tax' => $this->tax,
-        ], fn ($value) => $value !== null);
+        ], fn (mixed $value): bool => $value !== null);
     }
 }

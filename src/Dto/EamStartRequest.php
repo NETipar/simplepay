@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Dto;
 
 use Netipar\SimplePay\Enums\Currency;
@@ -20,6 +22,8 @@ readonly class EamStartRequest
     ) {}
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException
      */
     public function toArray(): array
@@ -33,6 +37,6 @@ readonly class EamStartRequest
             'customerEmail' => $this->customerEmail,
             'url' => $this->url,
             'items' => $this->items ? array_map(fn (Item $item) => $item->toArray(), $this->items) : null,
-        ], fn ($value) => $value !== null);
+        ], fn (mixed $value): bool => $value !== null);
     }
 }

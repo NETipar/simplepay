@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Support;
 
 use Illuminate\Http\Client\ConnectionException;
@@ -12,12 +14,15 @@ use RuntimeException;
 class Client
 {
     /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     *
      * @throws ConnectionException
      */
     public function post(string $endpoint, array $data, string $merchantKey): array
     {
         $url = $this->buildUrl($endpoint);
-        $json = json_encode($data);
+        $json = json_encode($data, JSON_THROW_ON_ERROR);
         $signature = Signature::generate($merchantKey, $json);
 
         $this->log('SimplePay request', ['url' => $url, 'data' => $data]);
@@ -36,12 +41,15 @@ class Client
     }
 
     /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     *
      * @throws ConnectionException
      */
     public function postSecurePay(string $endpoint, array $data, string $merchantKey): array
     {
         $url = $this->buildSecurePayUrl($endpoint);
-        $json = json_encode($data);
+        $json = json_encode($data, JSON_THROW_ON_ERROR);
         $signature = Signature::generate($merchantKey, $json);
 
         $this->log('SimplePay securepay request', ['url' => $url, 'data' => $data]);
@@ -97,6 +105,9 @@ class Client
         }
     }
 
+    /**
+     * @param  array<string, mixed>  $context
+     */
     private function log(string $message, array $context = []): void
     {
         $channel = config('simplepay.log_channel');

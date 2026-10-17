@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Exceptions;
 
 use Netipar\SimplePay\Enums\ErrorCode;
@@ -13,12 +15,17 @@ class SimplePayApiException extends RuntimeException
     /** @var array<int, ErrorCode> */
     private array $resolvedCodes;
 
+    /** @var array<string, mixed> */
+    private array $responseData;
+
     /**
      * @param  array<int, int>  $errorCodes
+     * @param  array<string, mixed>  $responseData
      */
     public function __construct(array $errorCodes, array $responseData = [])
     {
         $this->errorCodes = $errorCodes;
+        $this->responseData = $responseData;
         $this->resolvedCodes = array_filter(
             array_map(fn (int $code) => ErrorCode::tryFrom($code), $errorCodes),
         );
@@ -55,5 +62,15 @@ class SimplePayApiException extends RuntimeException
     public function hasErrorCode(int $code): bool
     {
         return in_array($code, $this->errorCodes, true);
+    }
+
+    /**
+     * The full API response body, e.g. the `redirectUrl` of a 3DS challenge (error code 3004).
+     *
+     * @return array<string, mixed>
+     */
+    public function getResponseData(): array
+    {
+        return $this->responseData;
     }
 }

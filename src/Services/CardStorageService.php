@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Services;
 
 use Illuminate\Http\Client\ConnectionException;
@@ -18,6 +20,8 @@ readonly class CardStorageService
     ) {}
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException|ConnectionException
      */
     public function do(CardStorageDoRequest $request): array
@@ -32,6 +36,8 @@ readonly class CardStorageService
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException|ConnectionException
      */
     public function doRecurring(RecurringRequest $request): array
@@ -46,6 +52,8 @@ readonly class CardStorageService
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException|ConnectionException
      */
     public function cardQuery(Currency $currency, string $cardId, bool $history = false): array
@@ -64,6 +72,8 @@ readonly class CardStorageService
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException|ConnectionException
      */
     public function cardCancel(Currency $currency, string $cardId): array
@@ -81,6 +91,8 @@ readonly class CardStorageService
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException|ConnectionException
      */
     public function tokenQuery(Currency $currency, string $token): array
@@ -98,6 +110,8 @@ readonly class CardStorageService
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException|ConnectionException
      */
     public function tokenCancel(Currency $currency, string $token): array

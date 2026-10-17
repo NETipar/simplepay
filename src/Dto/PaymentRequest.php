@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Dto;
 
 use Netipar\SimplePay\Enums\Currency;
@@ -11,6 +13,7 @@ readonly class PaymentRequest
     /**
      * @param  array<int, PaymentMethod>  $methods
      * @param  array<int, Item>|null  $items
+     * @param  array<string, mixed>|null  $recurring
      */
     public function __construct(
         public Currency $currency,
@@ -36,6 +39,8 @@ readonly class PaymentRequest
     ) {}
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException
      */
     public function toArray(): array

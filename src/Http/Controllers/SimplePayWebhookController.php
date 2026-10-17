@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
@@ -36,7 +38,7 @@ class SimplePayWebhookController
 
         $responseData = $data;
         $responseData['receiveDate'] = date('c');
-        $responseJson = json_encode($responseData);
+        $responseJson = json_encode($responseData, JSON_THROW_ON_ERROR);
 
         $signature = Signature::generate($secretKey, $responseJson);
 
