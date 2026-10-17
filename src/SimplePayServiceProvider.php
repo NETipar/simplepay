@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay;
 
 use Illuminate\Support\ServiceProvider;
@@ -10,6 +12,9 @@ use Netipar\SimplePay\Support\MerchantResolver;
 
 class SimplePayServiceProvider extends ServiceProvider
 {
+    /**
+     * Register any application services.
+     */
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/simplepay.php', 'simplepay');
@@ -20,18 +25,23 @@ class SimplePayServiceProvider extends ServiceProvider
         $this->app->singleton(BackUrlResponse::class, DefaultBackUrlResponse::class);
     }
 
+    /**
+     * Bootstrap any application services.
+     */
     public function boot(): void
     {
-        if ($this->app->runningInConsole()) {
-            $this->publishes([
-                __DIR__.'/../config/simplepay.php' => config_path('simplepay.php'),
-            ], 'simplepay-config');
+        $this->loadRoutesFrom(__DIR__.'/../routes/simplepay.php');
 
-            $this->publishes([
-                __DIR__.'/../resources/assets' => public_path('vendor/simplepay'),
-            ], 'simplepay-assets');
+        if (! $this->app->runningInConsole()) {
+            return;
         }
 
-        $this->loadRoutesFrom(__DIR__.'/../routes/simplepay.php');
+        $this->publishes([
+            __DIR__.'/../config/simplepay.php' => config_path('simplepay.php'),
+        ], ['simplepay', 'simplepay-config']);
+
+        $this->publishes([
+            __DIR__.'/../public' => public_path('vendor/simplepay'),
+        ], ['simplepay', 'simplepay-assets']);
     }
 }

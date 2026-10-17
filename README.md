@@ -7,7 +7,8 @@
 # SimplePay for Laravel
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/netipar/simplepay.svg?style=flat-square)](https://packagist.org/packages/netipar/simplepay)
-[![Tests](https://img.shields.io/github/actions/workflow/status/NETipar/simplepay/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/NETipar/simplepay/actions?query=workflow%3ATests+branch%3Amain)
+[![Tests](https://img.shields.io/github/actions/workflow/status/NETipar/simplepay/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/NETipar/simplepay/actions/workflows/tests.yml?query=branch%3Amain)
+[![PHP Version](https://img.shields.io/packagist/php-v/netipar/simplepay.svg?style=flat-square)](https://packagist.org/packages/netipar/simplepay)
 [![Total Downloads](https://img.shields.io/packagist/dt/netipar/simplepay.svg?style=flat-square)](https://packagist.org/packages/netipar/simplepay)
 
 Modern Laravel package for [SimplePay](https://simplepay.hu) online payment integration. Start payments, handle IPN webhooks, manage card storage, process refunds, and more.
@@ -45,8 +46,8 @@ return redirect($response->paymentUrl);
 
 ## Requirements
 
-- PHP 8.2+
-- Laravel 11 or 12
+- PHP 8.3+
+- Laravel 12 or 13
 - A [SimplePay](https://simplepay.hu) merchant account
 
 ## Installation
@@ -59,6 +60,12 @@ Publish the config file:
 
 ```bash
 php artisan vendor:publish --tag=simplepay-config
+```
+
+Or publish the config file and the logo assets at once:
+
+```bash
+php artisan vendor:publish --tag=simplepay
 ```
 
 Add your merchant credentials to `.env`:
@@ -385,6 +392,23 @@ try {
     $e->getErrorCodes();    // [5083]
     $e->hasErrorCode(5083); // true
     $e->getResolvedCodes(); // [ErrorCode::TokenTimesRequired]
+    $e->getResponseData();  // The full API response body
+}
+```
+
+When a card storage or auto payment requires a 3DS challenge, the API answers with error code `3004`, and the response body holds the `redirectUrl` where the customer has to be sent:
+
+```php
+use Netipar\SimplePay\Enums\ErrorCode;
+
+try {
+    $result = SimplePay::cardStorage()->do($request);
+} catch (SimplePayApiException $e) {
+    if ($e->hasErrorCode(ErrorCode::ThreeDsChallengeRedirect->value)) {
+        return redirect($e->getResponseData()['redirectUrl']);
+    }
+
+    throw $e;
 }
 ```
 
@@ -468,8 +492,23 @@ This package is built based on the **SimplePay PHP SDK v2.1** (API v2). All API 
 ## Testing
 
 ```bash
-composer test
+composer test        # PHPStan, Pint check, type coverage and the Pest suite
+composer test:unit   # Pest suite only
+composer analyse     # PHPStan (Larastan, level 7)
+composer lint        # Fix code style with Pint
 ```
+
+## Changelog
+
+Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
+
+## Contributing
+
+Please review the [contributing guide](.github/CONTRIBUTING.md) before opening a pull request.
+
+## Security Vulnerabilities
+
+Please review the [security policy](.github/SECURITY.md) on how to report security vulnerabilities.
 
 ## Credits
 

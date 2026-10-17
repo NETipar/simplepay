@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Dto;
 
 readonly class CardData
@@ -11,6 +13,9 @@ readonly class CardData
         public ?string $cardHolder = null,
     ) {}
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         return array_filter([
@@ -18,6 +23,6 @@ readonly class CardData
             'expiry' => $this->expiry,
             'cvc' => $this->cvc,
             'holder' => $this->cardHolder,
-        ], fn ($value) => $value !== null);
+        ], fn (mixed $value): bool => $value !== null);
     }
 }

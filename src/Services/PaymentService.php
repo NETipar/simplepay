@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Services;
 
 use Illuminate\Http\Client\ConnectionException;
@@ -47,6 +49,8 @@ readonly class PaymentService
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException
      * @throws ConnectionException
      */
@@ -62,6 +66,8 @@ readonly class PaymentService
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws ConnectionException
      */
     public function startApplePay(ApplePayStartRequest $request): array
@@ -76,6 +82,8 @@ readonly class PaymentService
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws ConnectionException
      */
     public function doApplePay(ApplePayDoRequest $request): array
@@ -174,6 +182,8 @@ readonly class PaymentService
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException
      * @throws ConnectionException
      */

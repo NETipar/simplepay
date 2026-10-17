@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Dto;
 
 use Netipar\SimplePay\Enums\Currency;
@@ -23,6 +25,8 @@ readonly class RecurringRequest
     ) {}
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws RandomException
      */
     public function toArray(): array
@@ -38,6 +42,6 @@ readonly class RecurringRequest
             'url' => $this->url,
             'type' => $this->type->value,
             'items' => $this->items ? array_map(fn (Item $item) => $item->toArray(), $this->items) : null,
-        ], fn ($value) => $value !== null);
+        ], fn (mixed $value): bool => $value !== null);
     }
 }

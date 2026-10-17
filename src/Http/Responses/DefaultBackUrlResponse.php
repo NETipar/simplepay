@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Http\Responses;
 
 use Illuminate\Http\Request;

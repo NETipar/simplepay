@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Http\Middleware;
 
 use Closure;
@@ -43,6 +45,9 @@ class VerifySimplePaySignature
         return $next($request);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     private function resolveSecretKey(array $data): ?string
     {
         if (isset($data['currency'])) {

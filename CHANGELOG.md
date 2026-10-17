@@ -1,6 +1,6 @@
-# Changelog
+# Release Notes
 
-All notable changes to `netipar/simplepay` will be documented in this file.
+## [Unreleased](https://github.com/NETipar/simplepay/compare/v1.2.0...main)
 
 ## v1.2.0 - 2026-04-28
 

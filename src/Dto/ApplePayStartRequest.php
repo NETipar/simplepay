@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Dto;
 
 use Netipar\SimplePay\Enums\Currency;
@@ -14,6 +16,9 @@ readonly class ApplePayStartRequest
         public string $url,
     ) {}
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         return [

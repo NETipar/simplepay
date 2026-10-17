@@ -1,0 +1,15 @@
+# PHPStan configuration for the Windows CI lane.
+#
+# Larastan boots a Laravel application (via Testbench) in every PHPStan worker,
+# and each boot rewrites the Testbench skeleton's bootstrap/cache/services.php
+# through a write-to-temp-file followed by rename() onto the shared path.
+# POSIX rename() tolerates concurrent writers; Windows does not, and the losing
+# worker dies with "Access is denied (code: 5)". A single process serialises
+# those writes; only the Windows lane pays the speed cost.
+
+includes:
+    - ../phpstan.neon.dist
+
+parameters:
+    parallel:
+        maximumNumberOfProcesses: 1

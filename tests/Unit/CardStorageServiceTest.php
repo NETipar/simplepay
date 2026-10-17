@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\Http;
 use Netipar\SimplePay\Dto\CardStorageDoRequest;
 use Netipar\SimplePay\Dto\Item;
 use Netipar\SimplePay\Dto\RecurringRequest;
 use Netipar\SimplePay\Enums\Currency;
 use Netipar\SimplePay\Enums\TransactionType;
+use Netipar\SimplePay\Exceptions\SimplePayApiException;
 use Netipar\SimplePay\Services\CardStorageService;
 use Netipar\SimplePay\Support\Client;
 use Netipar\SimplePay\Support\MerchantResolver;
@@ -51,6 +54,33 @@ it('sends a do request for oneclick payment', function () {
             && $body['currency'] === 'HUF'
             && isset($body['salt']);
     });
+});
+
+it('keeps the API response on the exception when a 3DS challenge is required', function () {
+    Http::fake([
+        'sandbox.simplepay.hu/payment/v2/do' => Http::response([
+            'errorCodes' => [3004],
+            'transactionId' => 123456,
+            'redirectUrl' => 'https://sandbox.simplepay.hu/3ds/challenge',
+        ]),
+    ]);
+
+    $request = new CardStorageDoRequest(
+        currency: Currency::HUF,
+        transactionId: 123456,
+        cardId: 'card-abc-123',
+        orderRef: 'ORDER-001',
+        total: 1500,
+        customerEmail: 'test@example.com',
+        url: 'https://example.com/back',
+    );
+
+    expect(fn () => createCardStorageService()->do($request))
+        ->toThrow(function (SimplePayApiException $exception) {
+            expect($exception->hasErrorCode(3004))->toBeTrue()
+                ->and($exception->getResponseData())
+                ->toHaveKey('redirectUrl', 'https://sandbox.simplepay.hu/3ds/challenge');
+        });
 });
 
 it('sends a do request with items', function () {

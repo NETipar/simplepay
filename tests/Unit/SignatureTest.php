@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Netipar\SimplePay\Support\Signature;
 
 it('generates a valid HMAC SHA-384 signature', function () {

@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netipar\SimplePay\Tests;
 
 use Netipar\SimplePay\SimplePayServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
-class TestCase extends Orchestra
+abstract class TestCase extends Orchestra
 {
     protected function getPackageProviders($app): array
     {

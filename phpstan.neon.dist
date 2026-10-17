@@ -1,0 +1,11 @@
+parameters:
+    level: 7
+    paths:
+        - src
+        - config
+        - routes
+    tmpDir: build/phpstan
+    # The package config directory: env() calls there are evaluated when the
+    # host app builds its config cache, which is the supported package pattern.
+    configDirectories:
+        - config
