@@ -292,12 +292,14 @@ use Netipar\SimplePay\Dto\GooglePayDoRequest;
 $googlePay = SimplePay::payment()->googlePayConfig(Currency::HUF, 5000);
 
 // Backend endpoint called by the button with the Base64 encoded Google Pay token
+$validated = $request->validate(['googlePayToken' => ['required', 'string']]);
+
 $response = SimplePay::payment()->doGooglePay(new GooglePayDoRequest(
     currency: Currency::HUF,
     total: 5000,
     orderRef: 'ORDER-GP-001',
     customerEmail: 'customer@example.com',
-    googlePayToken: $request->input('googlePayToken'),
+    googlePayToken: $validated['googlePayToken'],
     url: route('simplepay.back'), // where SimplePay returns the customer after a 3DS challenge
 ));
 

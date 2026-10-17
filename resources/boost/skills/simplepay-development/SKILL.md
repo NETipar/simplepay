@@ -166,19 +166,21 @@ class HandleSuccessfulPayment
 The `GET /simplepay/back` route is auto-registered. Customize the response by implementing `BackUrlResponse`:
 
 ```php
+use Illuminate\Http\Request;
 use Netipar\SimplePay\Contracts\BackUrlResponse;
 use Netipar\SimplePay\Dto\BackResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class CustomBackResponse implements BackUrlResponse
 {
-    public function toResponse(BackResponse $response): mixed
+    public function toResponse(Request $request, BackResponse $back): Response
     {
-        // $response->event  (BackEvent enum: SUCCESS, FAIL, CANCEL, TIMEOUT, PENDING for Request to Pay)
-        // $response->transactionId
-        // $response->orderRef
+        // $back->event  (BackEvent enum: SUCCESS, FAIL, CANCEL, TIMEOUT, PENDING for Request to Pay)
+        // $back->transactionId
+        // $back->orderRef
 
         return redirect()->route('payment.result', [
-            'status' => $response->event->value,
+            'status' => $back->event->value,
         ]);
     }
 }
@@ -334,12 +336,14 @@ $googlePay = SimplePay::payment()->googlePayConfig(Currency::HUF, $order->total)
 // gatewayMerchantId, paymentType ('CARD'), total, currency
 
 // 2. Backend endpoint: the frontend posts btoa(paymentMethodData.tokenizationData.token)
+$validated = $request->validate(['googlePayToken' => ['required', 'string']]);
+
 $response = SimplePay::payment()->doGooglePay(new GooglePayDoRequest(
     currency: Currency::HUF,
     total: $order->total,
     orderRef: $order->reference,
     customerEmail: $order->email,
-    googlePayToken: $request->input('googlePayToken'),
+    googlePayToken: $validated['googlePayToken'],
     url: route('simplepay.back'),   // return URL after a 3DS challenge, from server-side config
     threeDSReqAuthMethod: '02',     // 01 guest, 02 registered, 05 third-party login
 ));

@@ -67,7 +67,7 @@ class AppServiceProvider extends ServiceProvider
 A `BackResponse` objektum az alábbi tulajdonságokat tartalmazza:
 
 ```php
-$back->event;         // BackEvent enum (Success, Fail, Cancel, Timeout)
+$back->event;         // BackEvent enum (Success, Fail, Cancel, Timeout, Pending)
 $back->transactionId; // SimplePay tranzakció azonosító (int)
 $back->orderRef;      // Az eredeti megrendelési hivatkozás (string)
 $back->merchant;      // Kereskedői azonosító (string)
