@@ -33,22 +33,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Sandbox mód
+    | Sandbox Mode
     |--------------------------------------------------------------------------
     |
-    | Sandbox módban a SimplePay teszt környezetet használja.
-    | Éles üzemben állítsd false-ra.
+    | In sandbox mode the SimplePay test environment is used.
+    | Set it to false in production.
     |
     */
     'sandbox' => env('SIMPLEPAY_SANDBOX', true),
 
     /*
     |--------------------------------------------------------------------------
-    | Kereskedői fiókok pénznemenként
+    | Merchant Accounts per Currency
     |--------------------------------------------------------------------------
     |
-    | Minden pénznemhez külön merchant ID és secret key tartozik.
-    | Csak azokat a pénznemeket kell megadni, amelyeket használsz.
+    | Each currency has its own merchant ID and secret key.
+    | Only configure the currencies you use.
     |
     */
     'merchants' => [
@@ -68,11 +68,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | API URL-ek
+    | API URLs
     |--------------------------------------------------------------------------
     |
-    | A SimplePay sandbox és éles API URL-jei.
-    | Általában nem kell módosítani.
+    | The sandbox and live API URLs of SimplePay.
+    | Usually there is no need to change them.
     |
     */
     'urls' => [
@@ -85,30 +85,30 @@ return [
     | Back URL
     |--------------------------------------------------------------------------
     |
-    | Az alapértelmezett visszatérítési URL, ahova a vásárló érkezik
-    | a fizetés befejezése után. Felülírhatod a PaymentRequest-ben.
+    | The default back URL where the customer arrives after the
+    | payment. You can override it in the PaymentRequest.
     |
     */
     'back_url' => env('SIMPLEPAY_BACK_URL'),
 
     /*
     |--------------------------------------------------------------------------
-    | Log csatorna
+    | Log Channel
     |--------------------------------------------------------------------------
     |
-    | A SimplePay kommunikáció logolásához használt csatorna.
-    | Ha null, a default log csatornát használja.
+    | The log channel of the SimplePay communication.
+    | Set it to null to disable logging.
     |
     */
     'log_channel' => env('SIMPLEPAY_LOG_CHANNEL'),
 
     /*
     |--------------------------------------------------------------------------
-    | Időtúllépés (timeout)
+    | Timeout
     |--------------------------------------------------------------------------
     |
-    | A fizetési ablak időtúllépése másodpercben.
-    | Az alapérték 600 másodperc (10 perc).
+    | The payment window timeout in seconds.
+    | The default is 600 seconds (10 minutes).
     |
     */
     'timeout' => env('SIMPLEPAY_TIMEOUT', 600),
@@ -118,8 +118,8 @@ return [
     | Google Pay
     |--------------------------------------------------------------------------
     |
-    | A Google Pay kereskedői azonosító és név a saját fizetési oldalon
-    | megjelenő Google Pay gombhoz.
+    | The Google Pay merchant ID and name for the Google Pay button on your
+    | own checkout page.
     |
     */
     'google_pay' => [
@@ -129,10 +129,10 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Auto challenge (3DS)
+    | Auto Challenge (3DS)
     |--------------------------------------------------------------------------
     |
-    | Automatikus 3D Secure challenge kérés.
+    | Automatic 3D Secure challenge request.
     |
     */
     'auto_challenge' => env('SIMPLEPAY_AUTO_CHALLENGE', true),
@@ -145,11 +145,11 @@ return [
 A SimplePay rendszerben minden pénznemhez külön kereskedői fiók tartozik. Csak azokat kell beállítanod, amelyeket használni kívánod:
 
 ```env
-# Ha csak HUF-ban fogadsz fizetéseket:
+# If you only accept HUF payments:
 SIMPLEPAY_HUF_MERCHANT=your_huf_merchant_id
 SIMPLEPAY_HUF_SECRET_KEY=your_huf_secret_key
 
-# Ha EUR-ban is fogadsz:
+# If you also accept EUR:
 SIMPLEPAY_EUR_MERCHANT=your_eur_merchant_id
 SIMPLEPAY_EUR_SECRET_KEY=your_eur_secret_key
 ```
@@ -177,7 +177,7 @@ Ha külön log fájlba szeretnéd gyűjteni a SimplePay kommunikációt, hozz l�
 ```php
 // config/logging.php
 'channels' => [
-    // ...meglévő csatornák...
+    // ...existing channels...
 
     'simplepay' => [
         'driver' => 'daily',
@@ -201,7 +201,7 @@ SIMPLEPAY_LOG_CHANNEL=simplepay
 Az alapértelmezett időtúllépés 600 másodperc (10 perc). Ha módosítani szeretnéd:
 
 ```env
-SIMPLEPAY_TIMEOUT=900  # 15 perc
+SIMPLEPAY_TIMEOUT=900  # 15 minutes
 ```
 
 Ez azt jelenti, hogy a vásárlónak ennyi ideje van befejezni a fizetést a SimplePay oldalán.

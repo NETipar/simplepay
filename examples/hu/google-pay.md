@@ -131,7 +131,7 @@ Egy minimális Blade-oldal a hivatalos minta alapján:
             type: simplePayTransaction.paymentType,
             parameters: {
                 allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-                // Az 'AMEX' akkor kerüljön ide, ha a SimplePay-szerződésed elfogadja az American Expresst.
+                // Add 'AMEX' if your SimplePay contract accepts American Express.
                 allowedCardNetworks: ['MASTERCARD', 'VISA'],
             },
             tokenizationSpecification: {
@@ -193,13 +193,13 @@ Egy minimális Blade-oldal a hivatalos minta alapján:
         const result = await response.json();
 
         if (result.redirectUrl) {
-            // 3DS challenge: utána a SimplePay a kérés url címére irányítja vissza a vásárlót.
+            // 3DS challenge: SimplePay returns the customer to the request's url afterwards.
             window.location.replace(result.redirectUrl);
 
             return;
         }
 
-        // Nincs 3DS challenge: az eredményt itt jelenítsd meg, a rendelést az IPN alapján teljesítsd.
+        // No 3DS challenge: show the result here; the order is fulfilled from the IPN.
     }
 </script>
 <script async src="https://pay.google.com/gp/p/js/pay.js" onload="onGooglePayLoaded()"></script>

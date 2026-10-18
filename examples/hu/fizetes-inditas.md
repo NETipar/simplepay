@@ -33,7 +33,7 @@ $response = SimplePay::payment()->start(new PaymentRequest(
     ],
 ));
 
-// Átirányítás a fizetési oldalra
+// Redirect the customer to the payment page
 return redirect($response->paymentUrl);
 ```
 
@@ -42,9 +42,9 @@ return redirect($response->paymentUrl);
 A `start()` metódus által visszaadott válasz a következő adatokat tartalmazza:
 
 ```php
-$response->transactionId; // SimplePay tranzakció azonosító (int)
-$response->paymentUrl;    // Fizetési oldal URL, ahova a vásárlót át kell irányítani
-$response->timeout;       // A fizetés indításának határideje (Request to Pay indításnál null)
+$response->transactionId; // SimplePay transaction ID (int)
+$response->paymentUrl;    // Payment page URL to redirect the customer to
+$response->timeout;       // Deadline for starting the payment (null for Request to Pay starts)
 ```
 
 ## Kétlépcsős fizetés (preautorizáció)
@@ -131,7 +131,7 @@ $response = SimplePay::payment()->start(new PaymentRequest(
     url: route('simplepay.back'),
     methods: [PaymentMethod::CARD],
 
-    // Számlázási cím (kötelező)
+    // Billing address (required)
     invoice: new Address(
         name: 'Teszt Felhasználó',
         country: 'hu',
@@ -140,7 +140,7 @@ $response = SimplePay::payment()->start(new PaymentRequest(
         address: 'Teszt utca 1.',
     ),
 
-    // Szállítási cím (opcionális)
+    // Delivery address (optional)
     delivery: new Address(
         name: 'Teszt Felhasználó',
         country: 'hu',
@@ -149,16 +149,16 @@ $response = SimplePay::payment()->start(new PaymentRequest(
         address: 'Szállítás utca 5.',
     ),
 
-    // Vásárló adatai (opcionális)
+    // Customer name (optional)
     customer: 'Teszt Felhasználó',
 
-    // Szállítási költség (opcionális)
+    // Shipping cost (optional)
     shippingPrice: 1500,
 
-    // Kedvezmény (opcionális)
+    // Discount (optional)
     discount: 500,
 
-    // Tételek
+    // Items
     items: [
         new Item(title: 'Laptop táska', price: 8500, quantity: 1),
         new Item(title: 'Egérpárna', price: 3000, quantity: 1),
@@ -202,8 +202,8 @@ A `methods` tömbben megadható értékek:
 ```php
 use Netipar\SimplePay\Enums\PaymentMethod;
 
-PaymentMethod::CARD    // Bankkártyával
-PaymentMethod::WIRE    // Átutalással
+PaymentMethod::CARD    // Bank card
+PaymentMethod::WIRE    // Bank transfer
 ```
 
 ## Pénznemek
@@ -211,7 +211,7 @@ PaymentMethod::WIRE    // Átutalással
 ```php
 use Netipar\SimplePay\Enums\Currency;
 
-Currency::HUF  // Magyar forint
-Currency::EUR  // Euró
-Currency::USD  // Amerikai dollár
+Currency::HUF  // Hungarian forint
+Currency::EUR  // Euro
+Currency::USD  // US dollar
 ```

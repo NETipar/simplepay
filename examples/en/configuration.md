@@ -106,7 +106,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | The log channel used for SimplePay-related logging.
-    | Set to null to use the default log channel.
+    | Set it to null to disable logging.
     |
     */
     'log_channel' => env('SIMPLEPAY_LOG_CHANNEL'),

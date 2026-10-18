@@ -13,13 +13,13 @@ $query = SimplePay::payment()->query(
     transactionId: 123456,
 );
 
-$query->status;         // Tranzakció státusza (PaymentStatus)
-$query->total;          // Tranzakció összege (float)
-$query->orderRef;       // Megrendelési hivatkozás (string)
-$query->remainingTotal; // Hátralévő összeg visszatérítés után (?float)
-$query->paymentDate;    // Fizetés dátuma (?string)
-$query->finishDate;     // Lezárás dátuma (?string)
-$query->method;         // Fizetési mód, pl. "CARD" (?string)
+$query->status;         // Transaction status (PaymentStatus)
+$query->total;          // Transaction total (float)
+$query->orderRef;       // Order reference (string)
+$query->remainingTotal; // Remaining amount after refunds (?float)
+$query->paymentDate;    // Payment date (?string)
+$query->finishDate;     // Finish date (?string)
+$query->method;         // Payment method, e.g. "CARD" (?string)
 ```
 
 ## Visszatérítés (refund)
@@ -35,10 +35,10 @@ $refund = SimplePay::payment()->refund(new RefundRequest(
     currency: Currency::HUF,
     transactionId: 123456,
     orderRef: 'ORDER-123',
-    amount: 2500, // A teljes összeg
+    amount: 2500, // The full amount
 ));
 
-$refund->remainingTotal; // 0 (minden visszatérítve)
+$refund->remainingTotal; // 0 (everything refunded)
 ```
 
 ### Részleges visszatérítés
@@ -48,10 +48,10 @@ $refund = SimplePay::payment()->refund(new RefundRequest(
     currency: Currency::HUF,
     transactionId: 123456,
     orderRef: 'ORDER-123',
-    amount: 1000, // Csak 1000 Ft visszatérítése
+    amount: 1000, // Refund only HUF 1,000
 ));
 
-$refund->remainingTotal; // 1500 (a fennmaradó összeg)
+$refund->remainingTotal; // 1500 (the remaining amount)
 ```
 
 ### Többszörös részleges visszatérítés
@@ -59,7 +59,7 @@ $refund->remainingTotal; // 1500 (a fennmaradó összeg)
 Lehetséges többször is részlegesen visszatéríteni, amíg a teljes összeg el nem fogy:
 
 ```php
-// Első részleges visszatérítés
+// First partial refund
 $refund1 = SimplePay::payment()->refund(new RefundRequest(
     currency: Currency::HUF,
     transactionId: 123456,
@@ -68,7 +68,7 @@ $refund1 = SimplePay::payment()->refund(new RefundRequest(
 ));
 // $refund1->remainingTotal => 2000
 
-// Második részleges visszatérítés
+// Second partial refund
 $refund2 = SimplePay::payment()->refund(new RefundRequest(
     currency: Currency::HUF,
     transactionId: 123456,
@@ -100,16 +100,16 @@ $finish = SimplePay::payment()->finish(new FinishRequest(
     currency: Currency::HUF,
     transactionId: 123456,
     orderRef: 'ORDER-PREAUTH-001',
-    amount: 15000,        // a terhelendő összeg
-    originalTotal: 15000, // a zárolt összeg
+    amount: 15000,        // the amount to capture
+    originalTotal: 15000, // the authorized amount
 ));
 ```
 
 A `finish()` meghívásakor az összeg lehet kisebb is, mint az eredetileg zárolt összeg (részleges terhelés).
 
 ```php
-// Eredetileg 15000 Ft zárolt
-// Csak 12000 Ft terhelése
+// HUF 15,000 was authorized
+// Capture only HUF 12,000
 $finish = SimplePay::payment()->finish(new FinishRequest(
     currency: Currency::HUF,
     transactionId: 123456,
