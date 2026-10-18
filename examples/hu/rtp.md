@@ -92,7 +92,7 @@ Egy RTP tranzakció állapotának lekérdezése:
 ```php
 $query = SimplePay::rtp()->query(Currency::HUF, transactionId: '12345');
 
-// Rendelésazonosító vagy egy köteg csomagazonosítója alapján
+// By your order reference, or by the package reference of a batch
 $query = SimplePay::rtp()->query(Currency::HUF, orderRef: 'RTP-ORDER-001');
 $query = SimplePay::rtp()->query(Currency::HUF, packageRef: 'PKG-2026-10');
 ```

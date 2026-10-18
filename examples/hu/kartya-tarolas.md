@@ -13,15 +13,15 @@ use Netipar\SimplePay\Dto\CardStorageDoRequest;
 
 $result = SimplePay::cardStorage()->do(new CardStorageDoRequest(
     currency: Currency::HUF,
-    transactionId: null, // elavult: nem kerül a kérésbe, a következő major verzióban megszűnik
+    transactionId: null, // deprecated: not sent, removed in the next major version
     cardId: 'card-abc-123',
     orderRef: 'ORDER-456',
     total: 3000,
     customerEmail: 'vasarlo@example.com',
-    url: route('simplepay.back'), // ide tér vissza a vásárló 3DS challenge után
-    cardSecret: $cardSecret,      // a kártya tárolásakor megadott titok
-    threeDSReqAuthMethod: '02',   // 01 vendég, 02 regisztrált, 05 harmadik feles belépés
-    browser: $browser,            // lásd lent: „Böngészőadatok a 3DS-hez”
+    url: route('simplepay.back'), // where SimplePay returns the customer after a 3DS challenge
+    cardSecret: $cardSecret,      // the secret the customer gave when the card was stored
+    threeDSReqAuthMethod: '02',   // 01 guest, 02 registered, 05 third-party login
+    browser: $browser,            // see the "Böngészőadatok a 3DS-hez" section below
 ));
 ```
 
@@ -57,13 +57,13 @@ use Netipar\SimplePay\Enums\TransactionType;
 
 $result = SimplePay::cardStorage()->doRecurring(new RecurringRequest(
     currency: Currency::HUF,
-    transactionId: null, // elavult: nem kerül a kérésbe, a következő major verzióban megszűnik
+    transactionId: null, // deprecated: not sent, removed in the next major version
     orderRef: 'ORDER-REC-001',
     total: 5000,
     customerEmail: 'vasarlo@example.com',
     url: route('simplepay.back'),
     type: TransactionType::Mit,
-    token: $recurringToken, // kötelező: a kártyaregisztráció egyik tokenje
+    token: $recurringToken, // required: one of the tokens of the card registration
 ));
 ```
 
