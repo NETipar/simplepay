@@ -94,12 +94,15 @@ $cancel = SimplePay::payment()->cancel(
 Ha a fizetést kétlépcsős módban indítottad (`twoStep: true`), a zárolt összeget a `finish()` metódussal terhelheted:
 
 ```php
-$finish = SimplePay::payment()->finish(
+use Netipar\SimplePay\Dto\FinishRequest;
+
+$finish = SimplePay::payment()->finish(new FinishRequest(
     currency: Currency::HUF,
     transactionId: 123456,
     orderRef: 'ORDER-PREAUTH-001',
-    amount: 15000,
-);
+    amount: 15000,        // a terhelendő összeg
+    originalTotal: 15000, // a zárolt összeg
+));
 ```
 
 A `finish()` meghívásakor az összeg lehet kisebb is, mint az eredetileg zárolt összeg (részleges terhelés).
@@ -107,12 +110,13 @@ A `finish()` meghívásakor az összeg lehet kisebb is, mint az eredetileg záro
 ```php
 // Eredetileg 15000 Ft zárolt
 // Csak 12000 Ft terhelése
-$finish = SimplePay::payment()->finish(
+$finish = SimplePay::payment()->finish(new FinishRequest(
     currency: Currency::HUF,
     transactionId: 123456,
     orderRef: 'ORDER-PREAUTH-001',
     amount: 12000,
-);
+    originalTotal: 15000,
+));
 ```
 
 ## Hibakezelés

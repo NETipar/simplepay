@@ -88,26 +88,29 @@ For transactions started with `twoStep: true`, use `finish()` to capture the aut
 ```php
 use Netipar\SimplePay\Facades\SimplePay;
 use Netipar\SimplePay\Enums\Currency;
+use Netipar\SimplePay\Dto\FinishRequest;
 
 // Capture the full authorized amount
-$finish = SimplePay::payment()->finish(
+$finish = SimplePay::payment()->finish(new FinishRequest(
     currency: Currency::HUF,
     transactionId: 123456,
-    amount: 5000,
     orderRef: 'ORDER-PREAUTH-001',
-);
+    amount: 5000,        // the amount to capture
+    originalTotal: 5000, // the authorized amount
+));
 ```
 
 You can also capture a partial amount (less than the originally authorized total):
 
 ```php
 // Capture only a portion of the authorized amount
-$finish = SimplePay::payment()->finish(
+$finish = SimplePay::payment()->finish(new FinishRequest(
     currency: Currency::HUF,
     transactionId: 123456,
-    amount: 3000, // Less than the original 5000
     orderRef: 'ORDER-PREAUTH-001',
-);
+    amount: 3000, // Less than the original 5000
+    originalTotal: 5000,
+));
 ```
 
 ## Error Handling

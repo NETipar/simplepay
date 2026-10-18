@@ -57,14 +57,16 @@ use Netipar\SimplePay\Facades\SimplePay;
 
 $request = new PaymentRequest(
     currency: Currency::HUF,
-    customerEmail: 'customer@example.com',
+    total: 6000,
     orderRef: 'ORDER-001',
+    customerEmail: 'customer@example.com',
+    language: 'HU',
+    url: route('simplepay.back'),
     items: [
         new Item(title: 'Product name', price: 1000, quantity: 1),
-        new Item(title: 'Service', price: 2500, quantity: 2, tax: '27'),
+        new Item(title: 'Service', price: 2500, quantity: 2, tax: 27),
     ],
     methods: [PaymentMethod::CARD],
-    url: route('payment.back'),
     invoice: new Address(
         name: 'Customer Kft.',
         country: 'HU',
@@ -78,7 +80,7 @@ $response = SimplePay::payment()->start($request);
 
 // $response->transactionId  (int)
 // $response->paymentUrl     (string) — redirect user here
-// $response->timeout        (string)
+// $response->timeout        (?string)
 
 return redirect($response->paymentUrl);
 ```
@@ -92,11 +94,13 @@ use Netipar\SimplePay\Dto\FinishRequest;
 // Step 1: authorize
 $request = new PaymentRequest(
     currency: Currency::HUF,
-    customerEmail: 'customer@example.com',
+    total: 5000,
     orderRef: 'ORDER-002',
+    customerEmail: 'customer@example.com',
+    language: 'HU',
+    url: route('simplepay.back'),
     items: [new Item(title: 'Product', price: 5000, quantity: 1)],
     methods: [PaymentMethod::CARD],
-    url: route('payment.back'),
     twoStep: true,
 );
 $response = SimplePay::payment()->start($request);
@@ -105,8 +109,9 @@ $response = SimplePay::payment()->start($request);
 $finish = new FinishRequest(
     currency: Currency::HUF,
     transactionId: $response->transactionId,
-    originalTotal: 5000,
-    approveTotal: 5000,
+    orderRef: 'ORDER-002',
+    amount: 5000,        // the amount to capture (sent as approveTotal)
+    originalTotal: 5000, // the authorized amount
 );
 $finishResponse = SimplePay::payment()->finish($finish);
 // $finishResponse->transactionId, $finishResponse->total
@@ -143,7 +148,7 @@ class HandleSuccessfulPayment
         $ipn->orderRef;       // string
         $ipn->transactionId;  // int
         $ipn->status;         // PaymentStatus enum
-        $ipn->paymentMethod;  // PaymentMethod enum
+        $ipn->paymentMethod;  // ?string, e.g. "CARD"
         $ipn->finishDate;     // ?string
     }
 }
@@ -197,7 +202,8 @@ use Netipar\SimplePay\Dto\RefundRequest;
 $request = new RefundRequest(
     currency: Currency::HUF,
     transactionId: 123456789,
-    refundTotal: 1000,
+    orderRef: 'ORDER-001',
+    amount: 1000, // sent as refundTotal
 );
 
 $response = SimplePay::payment()->refund($request);
