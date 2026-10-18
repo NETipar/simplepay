@@ -53,10 +53,10 @@ $result = SimplePay::cardStorage()->doRecurring(new RecurringRequest(
 Tárolt kártya adatainak lekérdezése:
 
 ```php
-// Alap kártya lekérdezés
+// Basic card query
 $card = SimplePay::cardStorage()->cardQuery(Currency::HUF, 'card-abc-123');
 
-// Kártya lekérdezés előzményekkel (tranzakció történelem)
+// Card query with history (past transactions)
 $cardWithHistory = SimplePay::cardStorage()->cardQuery(
     Currency::HUF,
     'card-abc-123',

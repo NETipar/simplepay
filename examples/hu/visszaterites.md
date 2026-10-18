@@ -68,10 +68,10 @@ A `BackResponse` objektum az alábbi tulajdonságokat tartalmazza:
 
 ```php
 $back->event;         // BackEvent enum (Success, Fail, Cancel, Timeout, Pending)
-$back->transactionId; // SimplePay tranzakció azonosító (int)
-$back->orderRef;      // Az eredeti megrendelési hivatkozás (string)
-$back->merchant;      // Kereskedői azonosító (string)
-$back->total;         // A fizetés összege (float)
+$back->transactionId; // SimplePay transaction ID (int)
+$back->orderRef;      // The original order reference (string)
+$back->merchant;      // Merchant ID (string)
+$back->total;         // Payment total (float)
 ```
 
 ## Események részletesen

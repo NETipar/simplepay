@@ -20,10 +20,10 @@ $response = SimplePay::rtp()->start(new RtpStartRequest(
     customer: 'Teszt Vásárló',
 ));
 
-// Válasz adatok
-$response->paymentUrl;    // URL a fizetési oldalhoz
-$response->transactionId; // SimplePay tranzakció azonosító
-$response->timeout;       // null: az RTP indítás válaszában nincs timeout
+// Response data
+$response->paymentUrl;    // Payment page URL
+$response->transactionId; // SimplePay transaction ID
+$response->timeout;       // null: RTP start responses have no timeout
 ```
 
 ### Eseményenkénti visszairányítási címek

@@ -121,14 +121,14 @@ Minden event tartalmaz egy `$event->ipn` objektumot az alábbi tulajdonságokkal
 ```php
 $ipn = $event->ipn;
 
-$ipn->orderRef;      // Megrendelési hivatkozás (string)
-$ipn->transactionId; // SimplePay tranzakció azonosító (int)
-$ipn->status;        // Tranzakció státusza (PaymentStatus)
-$ipn->currency;      // Pénznem (Currency)
-$ipn->total;         // Tranzakció összege (float)
-$ipn->finishDate;    // Tranzakció befejezésének dátuma (string)
-$ipn->paymentMethod; // Fizetési módszer (string, pl. "CARD")
-$ipn->cardMask;      // Maszkolt kártyaszám (string|null, pl. "1234-xxxx-xxxx-5678")
+$ipn->orderRef;      // Order reference (string)
+$ipn->transactionId; // SimplePay transaction ID (int)
+$ipn->status;        // Transaction status (PaymentStatus)
+$ipn->currency;      // Currency (Currency)
+$ipn->total;         // Transaction total (float)
+$ipn->finishDate;    // Date the transaction finished (string)
+$ipn->paymentMethod; // Payment method (string, e.g. "CARD")
+$ipn->cardMask;      // Masked card number (string|null, e.g. "1234-xxxx-xxxx-5678")
 ```
 
 ## Használat az IpnReceived általános event-tel

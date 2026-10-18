@@ -14,19 +14,19 @@ Ez a `public/vendor/simplepay/` könyvtárba másolja az összes logót és vari
 
 ```
 public/vendor/simplepay/
-├── logos/                          # Egyedi logók
-│   ├── simplepay_200x50.png        # SimplePay fő logó (200x50)
-│   ├── simplepay_w140.png          # SimplePay 140px széles
-│   ├── simplepay_w240.png          # SimplePay 240px széles
-│   ├── simplepay_w360.png          # SimplePay 360px széles
-│   ├── simplepay_horizontal_01.png # Fekvő logó v1
-│   ├── simplepay_horizontal_02.png # Fekvő logó v2
-│   ├── simplepay_vertical.png      # Álló logó
-│   ├── simplepay_vertical.svg      # Álló logó (SVG)
-│   ├── simplepay_top.png           # Felül elhelyezett logó
-│   ├── simplepay_*-white.png       # Fehér változatok (sötét háttérhez)
-│   ├── visa_logo_color.png         # Visa (színes)
-│   ├── visa_logo_bw.png            # Visa (fekete-fehér)
+├── logos/                          # Individual logos
+│   ├── simplepay_200x50.png        # SimplePay main logo (200x50)
+│   ├── simplepay_w140.png          # SimplePay 140px wide
+│   ├── simplepay_w240.png          # SimplePay 240px wide
+│   ├── simplepay_w360.png          # SimplePay 360px wide
+│   ├── simplepay_horizontal_01.png # Horizontal logo v1
+│   ├── simplepay_horizontal_02.png # Horizontal logo v2
+│   ├── simplepay_vertical.png      # Vertical logo
+│   ├── simplepay_vertical.svg      # Vertical logo (SVG)
+│   ├── simplepay_top.png           # Top-placed logo
+│   ├── simplepay_*-white.png       # White variants (for dark backgrounds)
+│   ├── visa_logo_color.png         # Visa (color)
+│   ├── visa_logo_bw.png            # Visa (black & white)
 │   ├── mastercard_logo_color_new.png
 │   ├── mastercard_logo_bw_new.png
 │   ├── maestro_logo_color_new.png
@@ -37,7 +37,7 @@ public/vendor/simplepay/
 │   ├── GPay_logo_color_new.png
 │   ├── qvik_logo_color.png
 │   └── OTPszepkartya_logo_color.png
-└── variaciok/                      # Előre összeállított logó kombinációk
+└── variaciok/                      # Pre-composed logo combinations
     ├── SimplePay_Logo+MC-Maestro-Visa/
     ├── SimplePay_Logo+Qvik/
     ├── SimplePay_Logo+SZEP/
@@ -103,14 +103,14 @@ public/vendor/simplepay/
 Ha nem szeretnéd egyenként kezelni a kártyalogókat, használd az előre összeállított variációkat:
 
 ```blade
-{{-- SimplePay + bankkártyák (Amex nélkül) --}}
+{{-- SimplePay + bank cards (without Amex) --}}
 <img
     src="{{ asset('vendor/simplepay/variaciok/SimplePay_Logo_wo_Amex/simplepay_bankcard_logos_left-hu.png') }}"
     alt="SimplePay - Bankkártyás fizetés"
     class="h-12"
 >
 
-{{-- SimplePay + bankkártyák (Amex-szel) --}}
+{{-- SimplePay + bank cards (with Amex) --}}
 <img
     src="{{ asset('vendor/simplepay/variaciok/SimplePay_Logo_with_Amex/simplepay_bankcard_logos_left-hu.png') }}"
     alt="SimplePay - Bankkártyás fizetés"
