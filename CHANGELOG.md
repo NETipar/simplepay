@@ -1,6 +1,34 @@
 # Release Notes
 
-## [Unreleased](https://github.com/NETipar/simplepay/compare/v2.0.0...HEAD)
+## [Unreleased](https://github.com/NETipar/simplepay/compare/v2.1.0...HEAD)
+
+## [v2.1.0](https://github.com/NETipar/simplepay/compare/v2.0.0...v2.1.0) - 2026-10-18
+
+### Fixed
+
+- Requests now send the fields of the official SimplePay PHP SDK samples. Several calls could not work before; no action is needed unless noted below.
+  - Every request sends `sdkVersion`; card and token queries and cancels send the currency.
+  - `PaymentRequest` sends the shipping cost as `shippingCost`, so SimplePay adds it to the amount to pay (it was sent as `shippingPrice` and ignored), and `Item` sends its description as `desc`.
+  - OneClick (`CardStorageDoRequest`): new optional `cardSecret`, `type`, `threeDSReqAuthMethod`, `browser`, `customer` and `invoice`; `transactionId` is deprecated and no longer sent, because the card is identified by `cardId` (the transaction ID of the card registration).
+  - Recurring (`RecurringRequest`): new `token` parameter, which the `dorecurring` call requires; `transactionId` is deprecated and no longer sent. Action: pass `token`; a request without it now throws `InvalidArgumentException` before it is sent.
+  - Auto payment (`AutoPaymentRequest`): the browser data is sent as `browser` with the official keys (`BrowserData` gained an optional `ip`), plus new optional `url`, `threeDSReqAuthMethod` and `language`.
+  - Request to Pay: `RtpStartRequest` sends `language`, `deadline` (default 2 hours 5 minutes, or `timeout` seconds) and optional `additionalInfo`, and no longer sends `timeout`; batches send `packageRef` (generated when missing) and `transactions`; `query()` sends id lists and accepts `packageRef`; `refund()` sends `refundTotal` and the currency, with optional `originalTotal`; `reverse()` sends the currency.
+  - Apple Pay: `ApplePayStartRequest` sends `domain` (default: the host of `app.url`), `language` and `timeout`. Action: pass `domain` when the checkout does not run on the host of `APP_URL`; when no domain can be resolved, it throws `InvalidArgumentException`. `ApplePayDoRequest` sends the token as `applePayToken`.
+  - qvik (`EamStartRequest`): sends `eamType` (default 1, QR), `language` and `timeout`.
+  
+- The debug log (`SIMPLEPAY_LOG_CHANNEL`) no longer contains card numbers, expiry dates, CVCs, card secrets or tokens.
+
+### Added
+
+- `PaymentResponse::$tokens`: the recurring tokens of a card registration start.
+
+### Changed
+
+- `CardStorageDoRequest::$transactionId` and `RecurringRequest::$transactionId` are `?int`; they are deprecated and will be removed in the next major version.
+
+### Documentation
+
+- The README, the examples and the Boost skill match the package API (`FinishRequest`, `RefundRequest`, IPN events, card storage, Request to Pay, Apple Pay), and the code comments of the Hungarian examples are in English.
 
 ## [v2.0.0](https://github.com/NETipar/simplepay/compare/v1.2.0...v2.0.0) - 2026-10-17
 
