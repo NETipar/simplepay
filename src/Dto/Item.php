@@ -23,7 +23,7 @@ readonly class Item
         return array_filter([
             'ref' => $this->ref,
             'title' => $this->title,
-            'description' => $this->description,
+            'desc' => $this->description,
             'amount' => $this->quantity,
             'price' => $this->price,
             'tax' => $this->tax,

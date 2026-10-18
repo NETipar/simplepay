@@ -14,6 +14,7 @@ readonly class PaymentRequest
      * @param  array<int, PaymentMethod>  $methods
      * @param  array<int, Item>|null  $items
      * @param  array<string, mixed>|null  $recurring
+     * @param  float|null  $shippingPrice  Sent as `shippingCost`, which SimplePay adds to the amount to pay.
      * @param  RedirectUrls|null  $urls  Event-specific redirect URLs; SimplePay ignores $url when they are sent.
      */
     public function __construct(
@@ -98,7 +99,7 @@ readonly class PaymentRequest
         }
 
         if ($this->shippingPrice !== null) {
-            $data['shippingPrice'] = $this->shippingPrice;
+            $data['shippingCost'] = $this->shippingPrice;
         }
 
         if ($this->discount !== null) {

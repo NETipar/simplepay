@@ -17,14 +17,39 @@ use Netipar\SimplePay\Dto\CardStorageDoRequest;
 
 $result = SimplePay::cardStorage()->do(new CardStorageDoRequest(
     currency: Currency::HUF,
-    transactionId: 123456,
+    transactionId: null, // deprecated: not sent, removed in the next major version
     cardId: 'card-abc-123',
     orderRef: 'ORDER-456',
     total: 3000,
     customerEmail: 'customer@example.com',
-    url: route('simplepay.back'),
+    url: route('simplepay.back'), // where SimplePay returns the customer after a 3DS challenge
+    cardSecret: $cardSecret,      // the secret the customer gave when the card was stored
+    threeDSReqAuthMethod: '02',   // 01 guest, 02 registered, 05 third-party login
+    browser: $browser,            // see "3DS Browser Data" below
 ));
 ```
+
+### 3DS Browser Data
+
+OneClick and auto payments send the customer's browser data to the card issuer's 3DS check. Collect `navigator.language`, `screen.colorDepth`, `screen.height`, `screen.width` and `new Date().getTimezoneOffset()` on the checkout page, and add the request headers and IP address on the server:
+
+```php
+use Netipar\SimplePay\Dto\BrowserData;
+
+$browser = new BrowserData(
+    accept: (string) $request->header('Accept'),
+    agent: (string) $request->userAgent(),
+    language: $request->input('browser.lang'),
+    javaEnabled: false,
+    colorDepth: (int) $request->input('browser.color'),
+    screenHeight: (int) $request->input('browser.height'),
+    screenWidth: (int) $request->input('browser.width'),
+    timeZone: (int) $request->input('browser.tz'),
+    ip: $request->ip(),
+);
+```
+
+Without browser data the issuer's 3DS check may fail. If the issuer asks for a challenge, the API answers with error code `3004`; send the customer to `$e->getResponseData()['redirectUrl']`.
 
 ## Recurring Payment (Merchant-Initiated)
 
@@ -38,14 +63,17 @@ use Netipar\SimplePay\Dto\RecurringRequest;
 
 $result = SimplePay::cardStorage()->doRecurring(new RecurringRequest(
     currency: Currency::HUF,
-    transactionId: 789012,
+    transactionId: null, // deprecated: not sent, removed in the next major version
     orderRef: 'ORDER-REC-001',
     total: 5000,
     customerEmail: 'customer@example.com',
     url: route('simplepay.back'),
     type: TransactionType::Mit,
+    token: $recurringToken, // required: one of the tokens of the card registration
 ));
 ```
+
+A recurring payment without `token` throws an `InvalidArgumentException` before the request is sent.
 
 ### Transaction Types
 
@@ -127,18 +155,19 @@ $response = SimplePay::payment()->start(new PaymentRequest(
     items: [new Item(title: 'Monthly plan', price: 5000, quantity: 1)],
 ));
 
-// 2. Customer completes payment, card is stored...
-// 3. IPN webhook receives cardId in the response...
+// 2. Store the recurring tokens of the registration; they become active when the IPN reports the successful payment
+$recurringToken = $response->tokens[0];
 
 // 4. Monthly recurring charge (merchant-initiated, no customer interaction)
 $result = SimplePay::cardStorage()->doRecurring(new RecurringRequest(
     currency: Currency::HUF,
-    transactionId: $originalTransactionId,
+    transactionId: null,
     orderRef: 'SUB-MONTH-02',
     total: 5000,
     customerEmail: 'customer@example.com',
     url: route('simplepay.back'),
     type: TransactionType::Mit,
+    token: $recurringToken,
 ));
 
 // 5. When subscription is cancelled, remove the stored card

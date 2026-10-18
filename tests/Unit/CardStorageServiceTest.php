@@ -129,6 +129,7 @@ it('sends a dorecurring request', function () {
         customerEmail: 'test@example.com',
         url: 'https://example.com/back',
         type: TransactionType::Mit,
+        token: 'token-abc-123',
     );
 
     $response = createCardStorageService()->doRecurring($request);
@@ -140,7 +141,8 @@ it('sends a dorecurring request', function () {
 
         return str_contains($httpRequest->url(), '/v2/dorecurring')
             && $body['merchant'] === 'TEST_HUF_MERCHANT'
-            && $body['transactionId'] === 789012
+            && $body['token'] === 'token-abc-123'
+            && ! isset($body['transactionId'])
             && $body['type'] === 'MIT'
             && isset($body['salt']);
     });

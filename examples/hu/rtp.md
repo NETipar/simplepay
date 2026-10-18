@@ -4,7 +4,7 @@ A `SimplePay::rtp()` metódusain keresztül kezelheted a Request to Pay (azonnal
 
 ## RTP indítás
 
-Egyedi fizetési kérés indítása:
+Egyedi fizetési kérés indítása. A kérés a `deadline` időpontban (ISO 8601) jár le; ha nincs megadva, az indítás után 2 óra 5 perccel, ahogy a hivatalos SDK mintája, vagy `timeout` megadása esetén annyi másodperccel később.
 
 ```php
 use Netipar\SimplePay\Facades\SimplePay;
@@ -54,7 +54,7 @@ A csomag `simplepay.back` route-ján a pending visszairányítás `BackEvent::Pe
 
 ## Kötegelt RTP
 
-Több fizetési kérés egyidejűleg történő küldése:
+Több fizetési kérés egyidejűleg történő küldése. A köteg csomagként megy: a `packageRef` azonosítja a rendszeredben (ha nem adod meg, a csomag generál egyet), a `deadline` pedig fizetési kérésenként adható meg (alapértéke 30 nap).
 
 ```php
 use Netipar\SimplePay\Dto\RtpDoRequest;
@@ -91,6 +91,10 @@ Egy RTP tranzakció állapotának lekérdezése:
 
 ```php
 $query = SimplePay::rtp()->query(Currency::HUF, transactionId: '12345');
+
+// By your order reference, or by the package reference of a batch
+$query = SimplePay::rtp()->query(Currency::HUF, orderRef: 'RTP-ORDER-001');
+$query = SimplePay::rtp()->query(Currency::HUF, packageRef: 'PKG-2026-10');
 ```
 
 ## RTP visszatérítés (refund)
@@ -98,10 +102,10 @@ $query = SimplePay::rtp()->query(Currency::HUF, transactionId: '12345');
 RTP tranzakció visszatérítése:
 
 ```php
-SimplePay::rtp()->refund(Currency::HUF, '12345', 1000);
+SimplePay::rtp()->refund(Currency::HUF, '12345', 1000, originalTotal: 5000);
 ```
 
-A harmadik paraméter a visszatérítendő összeg. Részleges visszatérítés is lehetséges.
+A harmadik paraméter a visszatérítendő összeg, az `originalTotal` az eredeti tranzakció összege. Részleges visszatérítés is lehetséges.
 
 ## RTP sztornó (reverse)
 

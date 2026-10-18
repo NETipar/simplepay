@@ -242,11 +242,15 @@ use Netipar\SimplePay\Dto\CardStorageDoRequest;
 
 $request = new CardStorageDoRequest(
     currency: Currency::HUF,
-    customerEmail: 'customer@example.com',
-    orderRef: 'ORDER-003',
-    items: [new Item(title: 'Product', price: 1000, quantity: 1)],
-    url: route('payment.back'),
+    transactionId: null,          // deprecated: not sent
     cardId: 'stored-card-id',
+    orderRef: 'ORDER-003',
+    total: 1000,
+    customerEmail: 'customer@example.com',
+    url: route('simplepay.back'), // return URL after a 3DS challenge
+    cardSecret: $cardSecret,
+    threeDSReqAuthMethod: '02',   // 01 guest, 02 registered, 05 third-party login
+    browser: $browserData,        // BrowserData: accept, agent, language, colorDepth, screen size, timeZone, ip
 );
 
 $result = SimplePay::cardStorage()->do($request);
@@ -256,14 +260,19 @@ $result = SimplePay::cardStorage()->do($request);
 
 ```php
 use Netipar\SimplePay\Dto\RecurringRequest;
+use Netipar\SimplePay\Enums\TransactionType;
+
+// The token comes from the card registration start: $response->tokens (active after the successful payment)
 
 $request = new RecurringRequest(
     currency: Currency::HUF,
-    customerEmail: 'customer@example.com',
+    transactionId: null,          // deprecated: not sent
     orderRef: 'ORDER-004',
-    items: [new Item(title: 'Subscription', price: 2990, quantity: 1)],
-    url: route('payment.back'),
-    token: 'recurring-token',
+    total: 2990,
+    customerEmail: 'customer@example.com',
+    url: route('simplepay.back'),
+    type: TransactionType::Mit,
+    token: 'recurring-token',     // required, otherwise InvalidArgumentException
 );
 
 $result = SimplePay::cardStorage()->doRecurring($request);
@@ -325,7 +334,7 @@ $result = SimplePay::rtp()->do(new RtpDoRequest(
 
 // Query/refund/reverse RTP
 SimplePay::rtp()->query(Currency::HUF, transactionId: '12345');
-SimplePay::rtp()->refund(Currency::HUF, transactionId: '12345', amount: 5000);
+SimplePay::rtp()->refund(Currency::HUF, transactionId: '12345', amount: 5000, originalTotal: 5000);
 SimplePay::rtp()->reverse(Currency::HUF, transactionId: '12345');
 ```
 
@@ -478,7 +487,7 @@ All DTOs use readonly properties. Request DTOs include a `toArray()` method that
 | DTO | Purpose |
 |---|---|
 | `PaymentRequest` | Start a payment with items, addresses, methods |
-| `PaymentResponse` | Transaction ID, payment URL, timeout (null for RTP starts) |
+| `PaymentResponse` | Transaction ID, payment URL, timeout (null for RTP starts), recurring `tokens` of a card registration |
 | `RedirectUrls` | Per-event redirect URLs (`urls`) for payment and RTP starts |
 | `GooglePayDoRequest` / `GooglePayResponse` | Merchant-side Google Pay charge; `redirectUrl` when a 3DS challenge is required |
 | `FinishRequest` / `FinishResponse` | Two-step capture |
@@ -494,4 +503,4 @@ All DTOs use readonly properties. Request DTOs include a `toArray()` method that
 | `RtpStartRequest` / `RtpDoRequest` | Request to Pay flows |
 | `RtpPayment` | Bank transfer payment details |
 | `CardData` | Card number, expiry, CVC |
-| `BrowserData` | Browser fingerprint for 3DS |
+| `BrowserData` | Browser data for the issuer's 3DS check, sent as `browser` (add `ip`) |

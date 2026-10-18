@@ -55,7 +55,7 @@ readonly class RtpService
      *
      * @throws RandomException|ConnectionException
      */
-    public function query(Currency $currency, ?string $transactionId = null, ?string $orderRef = null): array
+    public function query(Currency $currency, ?string $transactionId = null, ?string $orderRef = null, ?string $packageRef = null): array
     {
         $resolved = $this->merchantResolver->resolve($currency);
 
@@ -65,31 +65,42 @@ readonly class RtpService
         ];
 
         if ($transactionId !== null) {
-            $payload['transactionId'] = $transactionId;
+            $payload['transactionIds'] = [$transactionId];
         }
 
         if ($orderRef !== null) {
-            $payload['orderRef'] = $orderRef;
+            $payload['orderRefs'] = [$orderRef];
+        }
+
+        if ($packageRef !== null) {
+            $payload['packageRef'] = $packageRef;
         }
 
         return $this->client->post('/rtp/query', $payload, $resolved['secret_key']);
     }
 
     /**
+     * @param  float  $amount  The amount to refund (`refundTotal`).
+     * @param  float|null  $originalTotal  The original amount of the transaction, as the official SDK sends it.
      * @return array<string, mixed>
      *
      * @throws RandomException|ConnectionException
      */
-    public function refund(Currency $currency, string $transactionId, float $amount): array
+    public function refund(Currency $currency, string $transactionId, float $amount, ?float $originalTotal = null): array
     {
         $resolved = $this->merchantResolver->resolve($currency);
 
         $payload = [
             'salt' => bin2hex(random_bytes(16)),
             'merchant' => $resolved['merchant'],
+            'currency' => $currency->value,
             'transactionId' => $transactionId,
-            'amount' => $amount,
+            'refundTotal' => $amount,
         ];
+
+        if ($originalTotal !== null) {
+            $payload['originalTotal'] = $originalTotal;
+        }
 
         return $this->client->post('/rtp/refund', $payload, $resolved['secret_key']);
     }
@@ -106,6 +117,7 @@ readonly class RtpService
         $payload = [
             'salt' => bin2hex(random_bytes(16)),
             'merchant' => $resolved['merchant'],
+            'currency' => $currency->value,
             'transactionId' => $transactionId,
         ];
 

@@ -233,10 +233,15 @@ use Netipar\SimplePay\Dto\CardStorageDoRequest;
 // Pay with a stored card
 $result = SimplePay::cardStorage()->do(new CardStorageDoRequest(
     currency: Currency::HUF,
-    total: 5000,
-    orderRef: 'ORDER-2026-002',
-    customerEmail: 'customer@example.com',
+    transactionId: null, // deprecated: not sent, removed in the next major version
     cardId: $savedCardId,
+    orderRef: 'ORDER-2026-002',
+    total: 5000,
+    customerEmail: 'customer@example.com',
+    url: route('simplepay.back'),
+    cardSecret: $cardSecret,
+    threeDSReqAuthMethod: '02',
+    browser: $browserData, // the customer's browser data for the 3DS check
 ));
 
 // Query stored card
@@ -248,14 +253,20 @@ SimplePay::cardStorage()->cardCancel(Currency::HUF, $cardId);
 
 ### Recurring Payments
 
+The start of a card registration (`recurring` in `PaymentRequest`) returns the recurring tokens in `$response->tokens`; they become active when the IPN reports the successful payment.
+
 ```php
 use Netipar\SimplePay\Dto\RecurringRequest;
+use Netipar\SimplePay\Enums\TransactionType;
 
 $result = SimplePay::cardStorage()->doRecurring(new RecurringRequest(
     currency: Currency::HUF,
-    total: 9900,
+    transactionId: null, // deprecated: not sent, removed in the next major version
     orderRef: 'SUB-2026-003',
+    total: 9900,
     customerEmail: 'customer@example.com',
+    url: route('simplepay.back'),
+    type: TransactionType::Mit,
     token: $recurringToken,
 ));
 ```
@@ -266,19 +277,23 @@ $result = SimplePay::cardStorage()->doRecurring(new RecurringRequest(
 use Netipar\SimplePay\Dto\ApplePayStartRequest;
 use Netipar\SimplePay\Dto\ApplePayDoRequest;
 
-// Start Apple Pay session
+// Start Apple Pay session (returns the API response with applePaySession).
+// Pass `domain` when the checkout does not run on the host of APP_URL.
 $session = SimplePay::payment()->startApplePay(new ApplePayStartRequest(
     currency: Currency::HUF,
     total: 5000,
     orderRef: 'ORDER-AP-001',
     customerEmail: 'customer@example.com',
+    url: route('simplepay.back'),
+    domain: 'shop.example.com', // the FQDN registered for Apple Pay; defaults to the host of app.url
 ));
 
-// Complete Apple Pay payment
+// Complete Apple Pay payment with the token from Apple Pay JS
 $result = SimplePay::payment()->doApplePay(new ApplePayDoRequest(
     currency: Currency::HUF,
-    transactionId: $session->transactionId,
-    applePayToken: $tokenFromJs,
+    transactionId: $session['transactionId'],
+    orderRef: 'ORDER-AP-001',
+    token: $tokenFromJs,
 ));
 ```
 
@@ -311,6 +326,30 @@ if ($response->requiresChallenge()) {
 
 Set `SIMPLEPAY_GOOGLE_PAY_MERCHANT_ID` and `SIMPLEPAY_GOOGLE_PAY_MERCHANT_NAME` from the Google Pay & Wallet Console. The full flow with the JavaScript button is in the [Google Pay example](examples/en/google-pay.md).
 
+### Auto Payment (Card Data on Your Page)
+
+PCI-DSS certified merchants can send the card data themselves:
+
+```php
+use Netipar\SimplePay\Dto\AutoPaymentRequest;
+use Netipar\SimplePay\Dto\CardData;
+use Netipar\SimplePay\Enums\TransactionType;
+
+$result = SimplePay::autoPayment()->auto(new AutoPaymentRequest(
+    currency: Currency::HUF,
+    total: 2500,
+    orderRef: 'ORDER-AUTO-001',
+    customerEmail: 'customer@example.com',
+    cardData: new CardData(cardNumber: $number, expiry: '0130', cvc: $cvc, cardHolder: 'John Doe'),
+    type: TransactionType::Cit,
+    browserData: $browserData,       // the customer's browser data for the 3DS check
+    url: route('simplepay.back'),    // where SimplePay returns the customer after a 3DS challenge
+    threeDSReqAuthMethod: '02',
+));
+```
+
+See [3DS browser data](examples/en/card-storage.md#3ds-browser-data) for building `BrowserData`.
+
 ### EAM / Qvik Payment
 
 ```php
@@ -322,6 +361,7 @@ $response = SimplePay::payment()->startEam(new EamStartRequest(
     orderRef: 'ORDER-EAM-001',
     customerEmail: 'customer@example.com',
     url: route('simplepay.back'),
+    eamType: 1, // 1 QR, 2 deeplink, 3 NFC, 4-7 combinations
 ));
 ```
 
@@ -343,8 +383,8 @@ $result = SimplePay::rtp()->start(new RtpStartRequest(
 // Query RTP status
 $status = SimplePay::rtp()->query(Currency::HUF, transactionId: $id);
 
-// Refund RTP
-SimplePay::rtp()->refund(Currency::HUF, $transactionId, 15000);
+// Refund RTP (refund total, then the original total)
+SimplePay::rtp()->refund(Currency::HUF, $transactionId, 15000, originalTotal: 15000);
 
 // Reverse RTP
 SimplePay::rtp()->reverse(Currency::HUF, $transactionId);

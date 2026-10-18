@@ -13,14 +13,39 @@ use Netipar\SimplePay\Dto\CardStorageDoRequest;
 
 $result = SimplePay::cardStorage()->do(new CardStorageDoRequest(
     currency: Currency::HUF,
-    transactionId: 123456,
+    transactionId: null, // deprecated: not sent, removed in the next major version
     cardId: 'card-abc-123',
     orderRef: 'ORDER-456',
     total: 3000,
     customerEmail: 'vasarlo@example.com',
-    url: route('simplepay.back'),
+    url: route('simplepay.back'), // where SimplePay returns the customer after a 3DS challenge
+    cardSecret: $cardSecret,      // the secret the customer gave when the card was stored
+    threeDSReqAuthMethod: '02',   // 01 guest, 02 registered, 05 third-party login
+    browser: $browser,            // see the "Böngészőadatok a 3DS-hez" section below
 ));
 ```
+
+### Böngészőadatok a 3DS-hez
+
+A OneClick és az AutoPayment fizetés a vásárló böngészőadatait is elküldi a kártyakibocsátó 3DS-ellenőrzéséhez. A fizetési oldalon gyűjtsd be a `navigator.language`, a `screen.colorDepth`, a `screen.height`, a `screen.width` és a `new Date().getTimezoneOffset()` értékét, a szerveren pedig add hozzá a kérés fejléceit és az IP-címet:
+
+```php
+use Netipar\SimplePay\Dto\BrowserData;
+
+$browser = new BrowserData(
+    accept: (string) $request->header('Accept'),
+    agent: (string) $request->userAgent(),
+    language: $request->input('browser.lang'),
+    javaEnabled: false,
+    colorDepth: (int) $request->input('browser.color'),
+    screenHeight: (int) $request->input('browser.height'),
+    screenWidth: (int) $request->input('browser.width'),
+    timeZone: (int) $request->input('browser.tz'),
+    ip: $request->ip(),
+);
+```
+
+Böngészőadatok nélkül a 3DS-ellenőrzés hibával zárulhat. Ha a kibocsátó challenge-et kér, az API `3004`-es hibakóddal válaszol; ilyenkor a vásárlót a `$e->getResponseData()['redirectUrl']` címre kell irányítani.
 
 ## Ismétlődő fizetés (recurring)
 
@@ -32,14 +57,17 @@ use Netipar\SimplePay\Enums\TransactionType;
 
 $result = SimplePay::cardStorage()->doRecurring(new RecurringRequest(
     currency: Currency::HUF,
-    transactionId: 789012,
+    transactionId: null, // deprecated: not sent, removed in the next major version
     orderRef: 'ORDER-REC-001',
     total: 5000,
     customerEmail: 'vasarlo@example.com',
     url: route('simplepay.back'),
     type: TransactionType::Mit,
+    token: $recurringToken, // required: one of the tokens of the card registration
 ));
 ```
+
+A `token` nélküli ismétlődő fizetés még a kérés elküldése előtt `InvalidArgumentException`-t dob.
 
 ### Tranzakció típusok
 
@@ -93,7 +121,7 @@ SimplePay::cardStorage()->tokenCancel(Currency::HUF, 'token-xyz');
 A kártyatárolással történő fizetés teljes folyamata a következő:
 
 1. **Első fizetés** - A vásárló fizet és hozzájárul a kártya tárolásához (`recurring` paraméter megadásával a `start()` hívásban).
-2. **Kártya tárolása** - A SimplePay tárolja a kártyát, és visszaküldi a `cardId`-t és/vagy `token`-t az IPN-ben.
+2. **Kártya tárolása** - A `start()` válasza a regisztráció ismétlődő fizetéshez használható tokenjeit is visszaadja (`$response->tokens`); ezek a sikeres fizetést jelző IPN-nel aktiválódnak.
 3. **Következő fizetések** - A tárolt `cardId`-vel vagy `token`-nel indíthatod a következő fizetéseket (`do()` vagy `doRecurring()`).
 4. **Kártya törlés** - Amikor a vásárló kérelmezi, törölheted a tárolt kártyát (`cardCancel()`).
 

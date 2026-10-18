@@ -14,6 +14,16 @@ use RuntimeException;
 class Client
 {
     /**
+     * The client identifier every request carries, as the official SDK sends it.
+     */
+    public const string SDK_VERSION = 'SimplePay_PHP_SDK_2.1_Laravel';
+
+    /**
+     * Payload keys whose values never reach the log.
+     */
+    private const array MASKED_KEYS = ['number', 'expiry', 'cvc', 'cardSecret', 'token', 'tokens', 'googlePayToken', 'applePayToken'];
+
+    /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      *
@@ -23,6 +33,7 @@ class Client
     public function post(string $endpoint, array $data, string $merchantKey): array
     {
         $url = $this->buildUrl($endpoint);
+        $data['sdkVersion'] ??= self::SDK_VERSION;
         $json = json_encode($data, JSON_THROW_ON_ERROR);
         $signature = Signature::generate($merchantKey, $json);
 
@@ -51,6 +62,7 @@ class Client
     public function postSecurePay(string $endpoint, array $data, string $merchantKey): array
     {
         $url = $this->buildSecurePayUrl($endpoint);
+        $data['sdkVersion'] ??= self::SDK_VERSION;
         $json = json_encode($data, JSON_THROW_ON_ERROR);
         $signature = Signature::generate($merchantKey, $json);
 
@@ -118,6 +130,23 @@ class Client
             return;
         }
 
-        Log::channel($channel)->debug($message, $context);
+        Log::channel($channel)->debug($message, $this->mask($context));
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $data
+     * @return array<array-key, mixed>
+     */
+    private function mask(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if (in_array($key, self::MASKED_KEYS, true)) {
+                $data[$key] = '[masked]';
+            } elseif (is_array($value)) {
+                $data[$key] = $this->mask($value);
+            }
+        }
+
+        return $data;
     }
 }
